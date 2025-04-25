@@ -22,7 +22,7 @@ $q7 = $jawaban[6];
 $q8 = $jawaban[7];
 $q9 = $jawaban[8];
 $q10 = $jawaban[9];
-
+ 
 // Simpan ke database
 $created_at = date('Y-m-d');
 $query = "INSERT INTO hasil_tes (user_id, q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, total, created_at)
