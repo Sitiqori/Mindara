@@ -63,9 +63,9 @@
 
   <section class="canvas-grafik">
     <div class="canvas-left">
-      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nesciunt corporis veritatis magnam itaque tenetur ut doloremque repellendus illo hic tempora. </p> <br>
-      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum, ullam?</p> <br>
-      <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Veritatis optio maiores repudiandae accusamus odit voluptate.</p>
+    <p>Mindara menggunakan pendekatan kalkulus vektor untuk menganalisis beberapa variabel sekaligus yang mempengaruhi tingkat stres mahasiswa, seperti beban akademik, waktu istirahat, dan aktivitas sosial.</p> <br>
+      <p>Melalui model matematis deret aritmatika dan geometri, kami dapat memprediksi pola peningkatan stres selama periode ujian dan deadline tugas besar.</p> <br>
+      <p>Visualisasi grafik ini menunjukkan fluktuasi tingkat stres sepanjang minggu berdasarkan data yang Anda input, membantu Anda mengidentifikasi pola dan mengambil tindakan preventif.</p>
     </div>
     <div class="canvas-right" style="max-width: 500px; ">
     <canvas id="stressChart"></canvas>
