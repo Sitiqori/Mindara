@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
@@ -36,6 +35,8 @@ if (!isset($_SESSION['user_id'])) {
 
 <div class="mindara-wrapper">
 <form action="hasil.php" method="POST" class="mindara-container">
+  
+  <!-- Tes Tingkat Stres -->
   <h1 class="mindara-heading">Tes Tingkat Stres</h1>
 
   <!-- Soal 1 -->
@@ -70,6 +71,66 @@ if (!isset($_SESSION['user_id'])) {
           <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i+1 ?>]" value="1"> Kadang-kadang</label>
           <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i+1 ?>]" value="2"> Sering</label>
           <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i+1 ?>]" value="3"> Sangat Sering</label>
+        </div>
+      </div>
+  <?php endfor; ?>
+
+  <hr class="mindara-hr">
+
+  <!-- Tes Tekanan Akademik -->
+  <h1 class="mindara-heading">Tes Tekanan Akademik</h1>
+
+  <?php
+    $pertanyaan_akademik = [
+      "1. Saya merasa kewalahan dengan tugas-tugas kuliah.",
+      "2. Saya kesulitan mengatur waktu antara kuliah, tugas, dan aktivitas lainnya.",
+      "3. Saya sering menunda-nunda (prokrastinasi) tugas akademik.",
+      "4. Saya merasa cemas saat menghadapi ujian atau presentasi.",
+      "5. Saya mengalami kesulitan memahami materi kuliah.",
+      "6. Saya merasa kurang termotivasi untuk belajar.",
+      "7. Saya merasa tekanan dari orang tua atau lingkungan untuk berprestasi.",
+      "8. Saya sulit berkonsentrasi saat belajar.",
+      "9. Saya merasa tidak percaya diri dengan kemampuan akademik saya.",
+      "10. Saya merasa kelelahan karena beban akademik yang berlebihan."
+    ];
+    for ($i = 0; $i < count($pertanyaan_akademik); $i++): ?>
+      <div class="mindara-question">
+        <label class="mindara-label"><?= $pertanyaan_akademik[$i] ?></label>
+        <div class="mindara-options">
+          <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="0" required> Tidak Pernah</label>
+          <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="1"> Kadang-kadang</label>
+          <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="2"> Sering</label>
+          <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="3"> Sangat Sering</label>
+        </div>
+      </div>
+  <?php endfor; ?>
+
+  <hr class="mindara-hr">
+
+  <!-- Tes Kesehatan Keuangan Mahasiswa -->
+  <h1 class="mindara-heading">Tes Kesehatan Keuangan Mahasiswa</h1>
+
+  <?php
+    $pertanyaan_keuangan = [
+      "1. Saya merasa cukup dengan uang bulanan yang saya miliki.",
+      "2. Saya kesulitan mengatur uang bulanan agar cukup sampai akhir bulan.",
+      "3. Saya sering merasa stres karena masalah keuangan.",
+      "4. Saya bisa menabung sebagian dari uang bulanan saya.",
+      "5. Saya memiliki rencana keuangan jangka panjang.",
+      "6. Saya menggunakan aplikasi atau alat untuk mencatat pengeluaran saya.",
+      "7. Saya sering meminjam uang untuk memenuhi kebutuhan sehari-hari.",
+      "8. Saya merasa puas dengan kondisi keuangan saya saat ini.",
+      "9. Saya paham tentang konsep investasi dasar.",
+      "10. Saya pernah mengikuti seminar atau pelatihan tentang literasi keuangan."
+    ];
+    for ($i = 0; $i < count($pertanyaan_keuangan); $i++): ?>
+      <div class="mindara-question">
+        <label class="mindara-label"><?= $pertanyaan_keuangan[$i] ?></label>
+        <div class="mindara-options">
+          <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="0" required> Sangat Setuju</label>
+          <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="1"> Setuju</label>
+          <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="2"> Tidak Setuju</label>
+          <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="3"> Sangat Tidak Setuju</label>
         </div>
       </div>
   <?php endfor; ?>
