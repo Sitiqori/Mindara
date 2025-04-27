@@ -21,7 +21,7 @@
     <a href="tentang.php">Tentang</a>
 
     <?php if (isset($_SESSION['user_name'])): ?>
-      <span style="margin-left: 20px;">Halo, <?= htmlspecialchars($_SESSION['user_name']); ?>!</span>
+      <a href="profile.php" class="user-greeting">Halo, <?= htmlspecialchars($_SESSION['user_name']); ?>!</a>
       <a href="logout.php" style="margin-left: 10px;">Logout</a>
     <?php else: ?>
       <a href="sign-in.php">Login</a>
