@@ -214,6 +214,54 @@ foreach ($dates as $index => $date) {
           <span>Sumbu Z (Q5+Q6): Kelelahan Emosional & Gangguan Tidur</span>
         </div>
       </div>
+
+      <!-- Rekomendasi Harian -->
+      <div style="margin-top: 10px;">
+          <p><strong>Solusi dan Rekomendasi:</strong></p>
+          <ul style="font-size: 0.9em;">
+            <?php
+              if (!empty($vector_data)) {
+                $latest = end($vector_data);
+                $total = $latest['total'];
+              }
+
+              if ($total <= 10) {
+                echo "
+                  <strong>Kondisi fisik, emosional, dan mental Anda stabil.(Stres Rendah)</strong>
+                  <li>Teruskan kebiasaan sehat seperti makan teratur, tidur cukup, dan olahraga ringan.</li>
+                  <li>Jaga keseimbangan antara pekerjaan dan waktu istirahat.</li>
+                  <li>Bangun relasi sosial yang positif.</li>
+                  <li>Waspadai stres ringan agar tidak menumpuk.</li>
+                ";
+              } elseif ($total <= 20) {
+                echo "
+                  <strong>Tubuh Anda mungkin mengalami kelelahan atau tekanan (Stres Fisik Ringan)</strong>
+                  <li>Pastikan Anda cukup tidur (minimal 7-8 jam).</li>
+                  <li>Lakukan relaksasi fisik seperti stretching, pijat, atau yoga.</li>
+                  <li>Kurangi konsumsi kafein dan gula berlebihan.</li>
+                  <li>Luangkan waktu untuk istirahat fisik yang berkualitas.</li>
+                ";
+              } elseif ($total <= 30) {
+                echo "
+                  <strong>Anda mungkin sedang merasa cemas, mudah marah, atau tidak stabil secara emosional (Stres Emosional Sedang)</strong>
+                  <li>Ceritakan perasaan Anda kepada orang yang dipercaya.</li>
+                  <li>Lakukan aktivitas yang menyenangkan dan menenangkan hati.</li>
+                  <li>Latih pernapasan dalam atau meditasi secara rutin.</li>
+                  <li>Jangan menekan emosi—pelajari cara mengelolanya dengan sehat.</li>
+                ";
+              } else {
+                echo "
+                  <strong>Kemungkinan Anda mengalami kelelahan pikiran, kesulitan fokus, atau kejenuhan (Stres Mental Tinggi)</strong>
+                  <li></li>
+                  <li>Istirahatlah dari aktivitas berat secara mental.</li>
+                  <li>Kurangi multitasking dan fokus pada satu hal dalam satu waktu.</li>
+                  <li>Lakukan aktivitas ringan seperti berjalan-jalan atau menonton film ringan.</li>
+                  <li>Tulis hal-hal kecil yang membuat Anda bersyukur setiap hari.</li>
+                ";
+              }
+            ?>
+          </ul>
+        </div>
       
       <!-- Detailed Vector Information -->
       <h3>Detail Vektor Harian</h3>
