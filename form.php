@@ -1,11 +1,11 @@
 <?php
-<?php
 session_start();
 if (isset($_SESSION['error'])) {
     echo '<div class="error">'.$_SESSION['error'].'</div>';
     unset($_SESSION['error']);
-    header("Location: login.php");
-    exit;
+    // Pilih untuk menampilkan error terlebih dahulu, atau hapus baris header ini untuk tidak melakukan redirect
+    // header("Location: login.php");
+    // exit;
 }
 ?>
 <!DOCTYPE html>

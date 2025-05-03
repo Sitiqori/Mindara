@@ -39,4 +39,3 @@ $stmt->execute();
 header("Location: analisis.php?result=done");
 exit;
 ?>
-
