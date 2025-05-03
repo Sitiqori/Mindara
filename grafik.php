@@ -35,25 +35,29 @@ $today_data = mysqli_fetch_assoc($result_today);
 // Siapkan data untuk grafik 3D
 $vector_data = null;
 if ($today_data) {
-    // Hitung total untuk setiap kategori
+    // Inisialisasi nilai default
     $stress_total = 0;
     $akademik_total = 0;
     $keuangan_total = 0;
     
     // Pertanyaan stres (q1-q10)
     for ($i = 1; $i <= 10; $i++) {
-        $stress_total += $today_data['q'.$i];
+        $key = 'q'.$i;
+        $stress_total += isset($today_data[$key]) ? (int)$today_data[$key] : 0;
     }
     
     // Pertanyaan akademik (q11-q20)
     for ($i = 11; $i <= 20; $i++) {
-        $akademik_total += $today_data['q'.$i];
+        $key = 'q'.$i;
+        $akademik_total += isset($today_data[$key]) ? (int)$today_data[$key] : 0;
     }
     
     // Pertanyaan keuangan (q21-q30)
     for ($i = 21; $i <= 30; $i++) {
+        $key = 'q'.$i;
         // Untuk keuangan, nilai dibalik karena skala berbeda
-        $keuangan_total += (3 - $today_data['q'.$i]);
+        $value = isset($today_data[$key]) ? (int)$today_data[$key] : 0;
+        $keuangan_total += (3 - $value);
     }
     
     // Normalisasi nilai keuangan (karena skala 0-3 dibalik)
