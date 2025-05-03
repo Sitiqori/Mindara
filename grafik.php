@@ -10,11 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Get data from the last 7 days
+// GRAFIK YANG 7 HARI TERAKHIR 
 $sql = "SELECT * FROM hasil_tes 
         WHERE user_id = '$user_id' 
-        AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-        ORDER BY created_at ASC";
+        AND DATE(created_at) = CURDATE()";
 $result = mysqli_query($conn, $sql);
 
 $dates = [];
@@ -38,7 +37,7 @@ $magnitudes = array_map(function($vector) {
   return sqrt(array_sum(array_map(function($val) { return $val * $val; }, $vector)));
 }, $daily_vectors);
 
-// Prepare data for 3D visualization
+// TAMPILAN GRAFIK 3D VECTOR
 $vector_data = [];
 foreach ($dates as $index => $date) {
   $vector_data[] = [
@@ -289,25 +288,6 @@ foreach ($dates as $index => $date) {
           </div>
         <?php endforeach; ?>
       </div>
-      
-      <!-- Vector Concept Explanation -->
-      <div style="margin-top: 30px;">
-        <h3>Interpretasi Visualisasi 3D</h3>
-        <p>Dalam model ini, kami memetakan jawaban Anda ke dalam ruang 3D:</p>
-        <ul>
-          <li><strong>Sumbu X</strong>: Kombinasi Ketegangan (Q1) dan Kesulitan Relaksasi (Q2)</li>
-          <li><strong>Sumbu Y</strong>: Kombinasi Kecemasan (Q3) dan Iritabilitas (Q4)</li>
-          <li><strong>Sumbu Z</strong>: Kombinasi Kelelahan Emosional (Q5) dan Gangguan Tidur (Q6)</li>
-        </ul>
-        <p>Panjang vektor menunjukkan intensitas stres, sedangkan arahnya menunjukkan dominansi jenis stres tertentu. Vektor yang mengarah ke:</p>
-        <ul>
-          <li><strong>X positif</strong>: Lebih banyak ketegangan dan sulit relaksasi</li>
-          <li><strong>Y positif</strong>: Lebih banyak kecemasan dan iritabilitas</li>
-          <li><strong>Z positif</strong>: Lebih banyak kelelahan emosional dan gangguan tidur</li>
-        </ul>
-      </div>
-    </div>
-  </div>
 
   <script>
     // Line Chart
@@ -342,7 +322,7 @@ foreach ($dates as $index => $date) {
       }
     });
 
-    // 3D Vector Visualization with Three.js
+    // VISUALISASI GRAFIK 3D DENGAN Three.js
     const container = document.getElementById('vector3d-container');
     
     // Scene setup
@@ -393,7 +373,7 @@ foreach ($dates as $index => $date) {
       0x1abc9c, 0xd35400, 0x34495e, 0x27ae60, 0xc0392b
     ];
     
-    // Create vectors
+    // MEMBUAT VEKTOR PADA GRAFIK 3D
     const vectors = [];
     vectorData.forEach((day, index) => {
       const color = colors[index % colors.length];
@@ -460,6 +440,7 @@ foreach ($dates as $index => $date) {
     
     // ... kode Three.js sebelumnya ...
 
+// FUNSI ANIMASI GRAFIK 3D
 function animate() {
   requestAnimationFrame(animate);
   
