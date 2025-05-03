@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Bulan Mei 2025 pada 14.57
+-- Waktu pembuatan: 03 Bulan Mei 2025 pada 17.49
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.1.25
 
@@ -92,15 +92,15 @@ INSERT INTO `hasil_tes` (`id`, `user_id`, `q1`, `q2`, `q3`, `q4`, `q5`, `q6`, `q
 (19, 5, 2, 3, 1, 0, 4, 0, 1, 2, 2, 4, 23, '2025-04-18 12:15:17'),
 (26, 5, 2, 1, 0, 3, 0, 4, 2, 3, 1, 0, 18, '2025-04-19 12:34:08'),
 (33, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '2025-04-19 14:35:59'),
-(34, 6, 2, 2, 2, 1, 2, 3, 2, 2, 1, 1, 18, '2025-04-25 17:00:00'),
-(35, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 30, '2025-04-25 17:00:00'),
-(36, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 20, '2025-04-25 17:00:00'),
-(37, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 30, '2025-04-25 17:00:00'),
-(38, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 30, '2025-04-26 17:00:00'),
-(39, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 6, '2025-04-27 08:59:14'),
-(40, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2025-04-27 08:59:49'),
-(41, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2025-04-27 09:00:05'),
-(42, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2025-04-27 09:00:10');
+(34, 6, 2, 2, 2, 1, 2, 3, 2, 2, 1, 1, 5, '2025-05-03 13:59:10'),
+(35, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, '2025-05-03 13:59:10'),
+(36, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, '2025-05-03 13:59:10'),
+(37, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, '2025-05-03 13:59:10'),
+(38, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, '2025-05-03 13:59:10'),
+(39, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2025-05-03 13:59:10'),
+(40, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2025-05-03 13:59:10'),
+(41, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2025-05-03 13:59:10'),
+(42, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '2025-05-03 14:17:32');
 
 -- --------------------------------------------------------
 
@@ -154,6 +154,25 @@ INSERT INTO `users` (`id`, `nama`, `email`, `password`, `phone`, `birthdate`, `g
 (5, 'Mi', 'test@gmail.com', '$2y$10$sj3RQYGY17ubX8WPhvh3feVYjOywNY1Nf6EqL5QZnoJDCDdcyJp4W', NULL, NULL, NULL, NULL, NULL, NULL),
 (6, 'Ismatul Ilmi', 'isma.tul0702@gmail.com', '$2y$10$efeMgToaD/VOsIy6Niwe4.ImHLvl2FohLbWXoZPymvCmGq2LZG7Mu', '082165089655', '2004-02-07', 'female', 'Saya alhamdulillah', 'important', 'uploads/profile_pics/user_6_1745744410.png');
 
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `user_profile`
+--
+
+CREATE TABLE `user_profile` (
+  `user_id` int(11) NOT NULL,
+  `fullname` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `birthdate` date DEFAULT NULL,
+  `gender` enum('male','female','other') NOT NULL,
+  `bio` text DEFAULT NULL,
+  `preferences` text DEFAULT NULL,
+  `profile_pic` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -192,6 +211,12 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indeks untuk tabel `user_profile`
+--
+ALTER TABLE `user_profile`
+  ADD PRIMARY KEY (`user_id`);
+
+--
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
@@ -224,6 +249,12 @@ ALTER TABLE `stress_records`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT untuk tabel `user_profile`
+--
+ALTER TABLE `user_profile`
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
