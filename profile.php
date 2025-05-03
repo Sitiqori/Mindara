@@ -277,3 +277,5 @@ $stress_data = $result_stress->fetch_assoc();
 
     <button type="submit">Update Profil</button>
 </form>
+
+
