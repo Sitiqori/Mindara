@@ -3,7 +3,29 @@ session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
-} 
+}
+
+$step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['jawaban'])) {
+        $_SESSION['jawaban'] = $_POST['jawaban'];
+    }
+    if (isset($_POST['jawaban_akademik'])) {
+        $_SESSION['jawaban_akademik'] = $_POST['jawaban_akademik'];
+    }
+    if (isset($_POST['jawaban_keuangan'])) {
+        $_SESSION['jawaban_keuangan'] = $_POST['jawaban_keuangan'];
+    }
+
+    if ($step < 3) {
+        header("Location: analisis.php?step=" . ($step + 1));
+        exit;
+    } else {
+        header("Location: hasil.php");
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -23,7 +45,6 @@ if (!isset($_SESSION['user_id'])) {
     <a href="index.php">Beranda</a>
     <a href="analisis.php">Analisis</a>
     <a href="tentang.php">Tentang</a>
-
     <?php if (isset($_SESSION['user_name'])): ?>
       <span style="margin-left: 20px;">Halo, <?= htmlspecialchars($_SESSION['user_name']); ?>!</span>
       <a href="logout.php" style="margin-left: 10px;">Logout</a>
@@ -34,24 +55,13 @@ if (!isset($_SESSION['user_id'])) {
 </header>
 
 <div class="mindara-wrapper">
-<form action="hasil.php" method="POST" class="mindara-container">
+<form action="analisis.php?step=<?= $step ?>" method="POST" class="mindara-container">
 
-  <!-- Tes Tingkat Stres -->
-  <h1 class="mindara-heading">Tes Tingkat Stres</h1>
-  <table>
-    <tr>
-      <td>
-        <label class="mindara-label">1. Saya merasa tegang atau tertekan:</label>
-        <div class="mindara-options">
-          <label class="mindara-option-label"><input type="radio" name="jawaban[0]" value="0" required> Tidak Pernah</label>
-          <label class="mindara-option-label"><input type="radio" name="jawaban[0]" value="1"> Kadang-kadang</label>
-          <label class="mindara-option-label"><input type="radio" name="jawaban[0]" value="2"> Sering</label>
-          <label class="mindara-option-label"><input type="radio" name="jawaban[0]" value="3"> Sangat Sering</label>
-        </div>
-      </td>
-    </tr>
+  <?php if ($step === 1): ?>
+    <h1 class="mindara-heading">Tes Tingkat Stres</h1>
     <?php
-      $pertanyaan = [
+      $pertanyaan_stres = [
+        "1. Saya merasa tegang atau tertekan.",
         "2. Saya merasa kesulitan untuk rileks.",
         "3. Saya cemas tanpa alasan yang jelas.",
         "4. Saya merasa mudah tersinggung.",
@@ -62,26 +72,20 @@ if (!isset($_SESSION['user_id'])) {
         "9. Saya merasa tidak berdaya atau putus asa.",
         "10. Saya mengalami gejala fisik seperti sakit kepala atau jantung berdebar karena stres."
       ];
-      for ($i = 0; $i < count($pertanyaan); $i++): ?>
-        <tr>
-          <td>
-            <label class="mindara-label"><?= $pertanyaan[$i] ?></label>
-            <div class="mindara-options">
-              <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i+1 ?>]" value="0" required> Tidak Pernah</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i+1 ?>]" value="1"> Kadang-kadang</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i+1 ?>]" value="2"> Sering</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i+1 ?>]" value="3"> Sangat Sering</label>
-            </div>
-          </td>
-        </tr>
-    <?php endfor; ?>
-  </table>
+      foreach ($pertanyaan_stres as $i => $soal): ?>
+        <div class="mindara-question">
+          <label class="mindara-label"><?= $soal ?></label>
+          <div class="mindara-options">
+            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="0" required> Tidak Pernah</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="1"> Kadang-kadang</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="2"> Sering</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="3"> Sangat Sering</label>
+          </div>
+        </div>
+    <?php endforeach; ?>
 
-  <hr class="mindara-hr">
-
-  <!-- Tes Tekanan Akademik -->
-  <h 1 class="mindara-heading">Tes Tekanan Akademik</h1>
-  <table>
+  <?php elseif ($step === 2): ?>
+    <h1 class="mindara-heading">Tes Tekanan Akademik</h1>
     <?php
       $pertanyaan_akademik = [
         "1. Saya merasa kewalahan dengan tugas-tugas kuliah.",
@@ -95,26 +99,20 @@ if (!isset($_SESSION['user_id'])) {
         "9. Saya merasa tidak percaya diri dengan kemampuan akademik saya.",
         "10. Saya merasa kelelahan karena beban akademik yang berlebihan."
       ];
-      for ($i = 0; $i < count($pertanyaan_akademik); $i++): ?>
-        <tr>
-          <td>
-            <label class="mindara-label"><?= $pertanyaan_akademik[$i] ?></label>
-            <div class="mindara-options">
-              <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="0" required> Tidak Pernah</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="1"> Kadang-kadang</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="2"> Sering</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="3"> Sangat Sering</label>
-            </div>
-          </td>
-        </tr>
-    <?php endfor; ?>
-  </table>
+      foreach ($pertanyaan_akademik as $i => $soal): ?>
+        <div class="mindara-question">
+          <label class="mindara-label"><?= $soal ?></label>
+          <div class="mindara-options">
+            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="0" required> Tidak Pernah</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="1"> Kadang-kadang</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="2"> Sering</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="3"> Sangat Sering</label>
+          </div>
+        </div>
+    <?php endforeach; ?>
 
-  <hr class="mindara-hr">
-
-  <!-- Tes Kesehatan Keuangan Mahasiswa -->
-  <h1 class="mindara-heading">Tes Kesehatan Keuangan Mahasiswa</h1>
-  <table>
+  <?php elseif ($step === 3): ?>
+    <h1 class="mindara-heading">Tes Kesehatan Keuangan Mahasiswa</h1>
     <?php
       $pertanyaan_keuangan = [
         "1. Saya merasa cukup dengan uang bulanan yang saya miliki.",
@@ -128,25 +126,22 @@ if (!isset($_SESSION['user_id'])) {
         "9. Saya paham tentang konsep investasi dasar.",
         "10. Saya pernah mengikuti seminar atau pelatihan tentang literasi keuangan."
       ];
-      for ($i = 0; $i < count($pertanyaan_keuangan); $i++): ?>
-        <tr>
-          <td>
-            <label class="mindara-label"><?= $pertanyaan_keuangan[$i] ?></label>
-            <div class="mindara-options">
-              <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="0" required> Sangat Setuju</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="1"> Setuju</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="2"> Tidak Setuju</label>
-              <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="3"> Sangat Tidak Setuju</label>
-            </div>
-          </td>
-        </tr>
-    <?php endfor; ?>
-  </table>
+      foreach ($pertanyaan_keuangan as $i => $soal): ?>
+        <div class="mindara-question">
+          <label class="mindara-label"><?= $soal ?></label>
+          <div class="mindara-options">
+            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="0" required> Sangat Setuju</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="1"> Setuju</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="2"> Tidak Setuju</label>
+            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="3"> Sangat Tidak Setuju</label>
+          </div>
+        </div>
+    <?php endforeach; ?>
+  <?php endif; ?>
 
   <hr class="mindara-hr">
-  <button class="mindara-submit-btn" type="submit">Kirim</button>
+  <button class="mindara-submit-btn" type="submit"><?= $step < 3 ? 'Lanjut' : 'Kirim Semua' ?></button>
 </form>
-
 </div>
 
 <script src="js/script.js"></script>
