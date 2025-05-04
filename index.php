@@ -26,7 +26,7 @@
       <a href="profile.php" class="user-greeting">Halo, <?= htmlspecialchars($_SESSION['user_name']); ?>!</a>
       <a href="logout.php" style="margin-left: 10px;">Logout</a>
     <?php else: ?>
-      <a href="sign-in.php">Login</a>
+      <a href="sign-in.php" class="login-link">Login</a>
     <?php endif; ?>
   </nav>
 </header>
@@ -77,15 +77,15 @@
     <div class="container">
       <h2 class="judul-section">Dengan menggabungkan data harian seperti jumlah tugas, durasi tidur, dan tekanan finansial, Mindara akan:</h2>
       <div class="grid-3">
-        <div class="card">
+        <div class="card1">
           <h3>Menganalisis Nilai Stres</h3>
           <p>Berdasarkan pola yang dihitung dari logika kalkulus.</p>
         </div>
-        <div class="card">
+        <div class="card2">
           <h3>Prediksi 7 Hari</h3>
           <p>Menampilkan grafik tingkat overthinking selama 7 hari ke depan.</p>
         </div>
-        <div class="card">
+        <div class="card3">
           <h3>Insight Sederhana</h3>
           <p>Agar pengguna lebih sadar akan kondisi mentalnya.</p>
         </div>
@@ -224,3 +224,6 @@
   </script>
 </body>
 </html>
+
+
+
