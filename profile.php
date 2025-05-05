@@ -305,8 +305,7 @@ $conn->close();
         
         .progress-bar {
             height: 100%;
-            width: <?php echo isset($latest_stress) ? ($latest_stress * 10) : 0; ?>%;
-            background-color: #2a9d8f;
+            background-color : #2a9d8f;
             border-radius: 5px;
         }
         
@@ -447,32 +446,11 @@ $conn->close();
                     </select>
                 </div>
                 
-                <div class="stress-level-section">
-                    <label for="stress_level">Tingkat Stres Terkini</label>
-                    <input type="range" id="stress_level" name="stress_level" min="0" max="10" value="<?php echo isset($latest_stress) ? $latest_stress : 5; ?>">
-                    <div class="progress-container">
-                        <div class="progress-bar"></div>
-                    </div>
-                    <span id="stress_percentage"><?php echo isset($latest_stress) ? $latest_stress * 10 : 50; ?>%</span> <!-- Menampilkan persentase -->
-                    <?php if(isset($stress_recorded_at)): ?>
-                        <p>Terakhir diperbarui: <?php echo date('d F Y, H:i', strtotime($stress_recorded_at)); ?></p>
-                    <?php endif; ?>
-                            
-                </div>
-                
                 <div class="form-group">
                     <label for="bio">Tentang Saya</label>
                     <textarea id="bio" name="bio" placeholder="Ceritakan sedikit tentang diri Anda..."><?php echo htmlspecialchars($bio); ?></textarea>
                 </div>
                 
-                <div class="form-group">
-                    <label for="preferences">Preferensi Notifikasi</label>
-                    <select id="preferences" name="preferences">
-                        <option value="all" <?php echo ($preferences == "all") ? "selected" : ""; ?>>Semua notifikasi</option>
-                        <option value="important" <?php echo ($preferences == "important") ? "selected" : ""; ?>>Hanya notifikasi penting</option>
-                        <option value="none" <?php echo ($preferences == "none") ? "selected" : ""; ?>>Tidak ada notifikasi</option>
-                    </select>
-                </div>
                 
                 <div class="button-group">
                     <a href="beranda.php" class="secondary-button" style="text-decoration: none; text-align: center;">Batal</a>

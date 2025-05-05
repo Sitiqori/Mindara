@@ -166,14 +166,14 @@
       <img src="images/muti.jpeg" alt="muti">
       <div class="tim-info">
         <h3>Muthia Febrahma Khoerunnisa</h3>
-        <p>247006111--</p>
+        <p>24700611130</p>
       </div>
     </div>
     <div class="tim-card">
       <img src="images/najmi.jpeg" alt="najmi">
       <div class="tim-info">
         <h3>Najmi Sabilla Almusfiroh</h3>
-        <p>247006111--</p>
+        <p>24700611125</p>
       </div>
     </div>
     <div class="tim-card">
@@ -187,7 +187,7 @@
       <img src="images/wardah.jpeg" alt="wardah">
       <div class="tim-info">
         <h3>Wardah Nurwafiq</h3>
-        <p>247006111--</p>
+        <p>24700611150</p>
       </div>
     </div>
   </div>
