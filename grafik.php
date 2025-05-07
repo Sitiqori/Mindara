@@ -10,24 +10,38 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // QUERY 1: Untuk Grafik Garis (7 Hari Terakhir)
-$sql_7days = "SELECT created_at, total FROM hasil_tes 
-              WHERE user_id = '$user_id' 
+$sql_7days = "SELECT DATE(created_at) as date, SUM(total) as total 
+              FROM hasil_tes 
+              WHERE user_id = '$user_id'
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
-              ORDER BY created_at ASC";
+              GROUP BY DATE(created_at)
+              ORDER BY date ASC";
 $result_7days = mysqli_query($conn, $sql_7days);
 
 $dates = [];
 $totals = [];
 
+// Isi data default jika tidak ada hasil
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('d M', strtotime("-$i days"));
+    $dates[] = $date;
+    $totals[] = 0; // Nilai default
+}
+
+// Timpa dengan data dari database jika ada
 while ($row = mysqli_fetch_assoc($result_7days)) {
-    $dates[] = date('d M', strtotime($row['created_at']));
-    $totals[] = $row['total'];
+    $date_index = array_search(date('d M', strtotime($row['date'])), $dates);
+    if ($date_index !== false) {
+        $totals[$date_index] = $row['total'];
+    }
 }
 
 // QUERY 2: Untuk Grafik 3D (Hari Ini Saja)
-$sql_today = "SELECT * FROM hasil_tes 
-              WHERE user_id = '$user_id' 
+$sql_today = "SELECT q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, total, created_at 
+              FROM hasil_tes 
+              WHERE user_id = '$user_id'
               AND DATE(created_at) = CURDATE()
+              ORDER BY created_at DESC
               LIMIT 1";
 $result_today = mysqli_query($conn, $sql_today);
 $today_data = mysqli_fetch_assoc($result_today);
@@ -35,33 +49,19 @@ $today_data = mysqli_fetch_assoc($result_today);
 // Siapkan data untuk grafik 3D
 $vector_data = null;
 if ($today_data) {
-    // Inisialisasi nilai default
+    // Hitung komponen stres
     $stress_total = 0;
-    $akademik_total = 0;
-    $keuangan_total = 0;
-    
-    // Pertanyaan stres (q1-q10)
     for ($i = 1; $i <= 10; $i++) {
-        $key = 'q'.$i;
-        $stress_total += isset($today_data[$key]) ? (int)$today_data[$key] : 0;
+        $stress_total += isset($today_data['q'.$i]) ? (int)$today_data['q'.$i] : 0;
     }
     
-    // Pertanyaan akademik (q11-q20)
-    for ($i = 11; $i <= 20; $i++) {
-        $key = 'q'.$i;
-        $akademik_total += isset($today_data[$key]) ? (int)$today_data[$key] : 0;
-    }
+    // Normalisasi ke skala 0-10
+    $stress_total = ($stress_total / 30) * 10;
     
-    // Pertanyaan keuangan (q21-q30)
-    for ($i = 21; $i <= 30; $i++) {
-        $key = 'q'.$i;
-        // Untuk keuangan, nilai dibalik karena skala berbeda
-        $value = isset($today_data[$key]) ? (int)$today_data[$key] : 0;
-        $keuangan_total += (3 - $value);
-    }
-    
-    // Normalisasi nilai keuangan (karena skala 0-3 dibalik)
-    $keuangan_total = $keuangan_total * (10 / 30); // Konversi ke skala 0-10
+    // Untuk demo, kita asumsikan komponen akademik dan keuangan sama dengan stres
+    // Di aplikasi nyata, ini harus dihitung dari pertanyaan yang sesuai
+    $akademik_total = $stress_total * 0.8;
+    $keuangan_total = $stress_total * 0.6;
     
     $magnitude = sqrt($stress_total*$stress_total + $akademik_total*$akademik_total + $keuangan_total*$keuangan_total);
     
@@ -78,6 +78,7 @@ if ($today_data) {
     ];
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
