@@ -1,150 +1,292 @@
 <?php
 session_start();
+require 'config.php';
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
+$user_id = $_SESSION['user_id'];
 $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['jawaban'])) {
-        $_SESSION['jawaban'] = $_POST['jawaban'];
-    }
-    if (isset($_POST['jawaban_akademik'])) {
+    // Save answers to session
+    if ($step === 1) {
+        $_SESSION['jawaban_stres'] = $_POST['jawaban'];
+    } elseif ($step === 2) {
         $_SESSION['jawaban_akademik'] = $_POST['jawaban_akademik'];
-    }
-    if (isset($_POST['jawaban_keuangan'])) {
+    } elseif ($step === 3) {
         $_SESSION['jawaban_keuangan'] = $_POST['jawaban_keuangan'];
+        
+        // Combine all answers
+        $jawaban = array_merge(
+            $_SESSION['jawaban_stres'],
+            $_SESSION['jawaban_akademik'],
+            $_SESSION['jawaban_keuangan']
+        );
+
+        // Calculate total scores per category
+        $stress_total = array_sum(array_slice($jawaban, 0, 10));
+        $akademik_total = array_sum(array_slice($jawaban, 10, 10));
+        $keuangan_total = array_sum(array_slice($jawaban, 20, 10));
+        $total = $stress_total + $akademik_total + $keuangan_total;
+
+        // Calculate vector magnitude
+        $max_input = 30; // Maximum score for each question (3 * 10 questions)
+        $max_magnitude = sqrt(3 * pow($max_input, 2)); // ~173.205
+        $magnitude = sqrt(pow($stress_total, 2) + pow($akademik_total, 2) + pow($keuangan_total, 2));
+        $normalized_score = ($magnitude / $max_magnitude) * 100;
+
+        // Round the normalized score to the nearest integer
+        $normalized_score = round($normalized_score);
+
+        // Determine stress level
+        if ($normalized_score <= 33) {
+            $level = 'Rendah';
+            $level_class = 'level-low';
+            $recommendation = "Anda memiliki tingkat stress rendah. Jaga pola hidup sehat dan rutin relaksasi.";
+        } elseif ($normalized_score <= 66) {
+            $level = 'Sedang';
+            $level_class = 'level-medium';
+            $recommendation = "Anda memiliki tingkat stress sedang. Perhatikan manajemen waktu dan coba teknik relaksasi.";
+        } else {
+            $level = 'Tinggi';
+            $level_class = 'level-high';
+            $recommendation = "Anda memiliki tingkat stress tinggi. Disarankan untuk konsultasi dengan profesional atau praktikkan teknik relaksasi yang intensif.";
+        }
+
+        // Prepare SQL with all columns
+        $query = "INSERT INTO hasil_tes (user_id, 
+                  q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, 
+                  q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+                  q21, q22, q23, q24, q25, q26, q27, q28, q29, q30, 
+                  total, stress_total, akademik_total, keuangan_total, normalized_score)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+                          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        // Prepare the statement
+        $stmt = $conn->prepare($query);
+        
+        if ($stmt === false) {
+            die("Error preparing statement: " . $conn->error);
+        }
+
+        // Bind parameters
+        $params = array_merge([$user_id], $jawaban, [$total, $stress_total, $akademik_total, $keuangan_total, $normalized_score]);
+        
+        $types = str_repeat("i", count($params));
+        $stmt->bind_param($types, ...$params);
+
+        // Execute the statement
+        if ($stmt->execute()) {
+            header("Location: grafik.php");
+            exit;
+        } else {
+            die("Error saving data: " . $stmt->error);
+        }
     }
 
     if ($step < 3) {
         header("Location: analisis.php?step=" . ($step + 1));
         exit;
-    } else {
-        header("Location: hasil.php");
-        exit;
     }
 }
 ?>
+
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analisis</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Analisis Stress Berdasarkan Vektor 3D</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+  }
+  .container {
+    background-color: rgba(0,0,0,0.6);
+    padding: 2rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  label {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  input[type=number] {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    width: 100%;
+  }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  button {
+    margin-top: 1rem;
+    padding: 0.7rem 1rem;
+    background: #8ec5fc;  /* blue gradient */
+    background: linear-gradient(to right, #67e8f9, #2563eb);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: linear-gradient(to right, #2563eb, #67e8f9);
+  }
+  .result {
+    margin-top: 2rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.1);
+    text-align: center;
+  }
+  .level-low {
+    color: #4ade80; /* green */
+    font-weight: 700;
+  }
+  .level-medium {
+    color: #facc15; /* yellow */
+    font-weight: 700;
+  }
+  .level-high {
+    color: #f87171; /* red */
+    font-weight: 700;
+  }
+  @media (max-width: 400px) {
+    body {
+      padding: 1rem;
+    }
+    .container {
+      padding: 1.5rem;
+    }
+  }
+</style>
 </head>
 <body>
-<header id="navbar">
-  <div class="logo">
-    <img src="images/mindara.png" alt="Mindara Logo" class="logo-img" />
-  </div>
-  <nav>
-    <a href="index.php">Beranda</a>
-    <a href="analisis.php">Analisis</a>
-    <a href="tentang.php">Tentang</a>
-    <?php if (isset($_SESSION['user_name'])): ?>
-      <span style="margin-left: 20px;">Halo, <?= htmlspecialchars($_SESSION['user_name']); ?>!</span>
-      <a href="logout.php" style="margin-left: 10px;">Logout</a>
-    <?php else: ?>
-      <a href="sign-in.php">Login</a>
-    <?php endif; ?>
-  </nav>
-</header>
+<div class="container">
+  <h1>Analisis Stress 3D</h1>
+  <?php
+  // Initialize variables
+  $x = $y = $z = null;
+  $error = '';
+  $result = '';
+  $score = null;
 
-<div class="mindara-wrapper">
-<form action="analisis.php?step=<?= $step ?>" method="POST" class="mindara-container">
+  // Define max input value and max vector magnitude
+  $max_input = 100;
+  $max_magnitude = sqrt(3 * pow($max_input, 2)); // ~173.205
 
-  <?php if ($step === 1): ?>
-    <h1 class="mindara-heading">Tes Tingkat Stres</h1>
-    <?php
-      $pertanyaan_stres = [
-        "1. Saya merasa tegang atau tertekan.",
-        "2. Saya merasa kesulitan untuk rileks.",
-        "3. Saya cemas tanpa alasan yang jelas.",
-        "4. Saya merasa mudah tersinggung.",
-        "5. Saya merasa kelelahan secara emosional.",
-        "6. Saya sulit tidur karena pikiran terus berjalan.",
-        "7. Saya merasa kewalahan oleh tanggung jawab.",
-        "8. Saya kehilangan minat dalam hal-hal yang biasanya saya nikmati.",
-        "9. Saya merasa tidak berdaya atau putus asa.",
-        "10. Saya mengalami gejala fisik seperti sakit kepala atau jantung berdebar karena stres."
-      ];
-      foreach ($pertanyaan_stres as $i => $soal): ?>
-        <div class="mindara-question">
-          <label class="mindara-label"><?= $soal ?></label>
-          <div class="mindara-options">
-            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="0" required> Tidak Pernah</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="1"> Kadang-kadang</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="2"> Sering</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban[<?= $i ?>]" value="3"> Sangat Sering</label>
-          </div>
-        </div>
-    <?php endforeach; ?>
+  if ($_SERVER["REQUEST_METHOD"] === "POST") {
+      // Validate inputs
+      $x_raw = $_POST['x'] ?? '';
+      $y_raw = $_POST['y'] ?? '';
+      $z_raw = $_POST['z'] ?? '';
 
-  <?php elseif ($step === 2): ?>
-    <h1 class="mindara-heading">Tes Tekanan Akademik</h1>
-    <?php
-      $pertanyaan_akademik = [
-        "1. Saya merasa kewalahan dengan tugas-tugas kuliah.",
-        "2. Saya kesulitan mengatur waktu antara kuliah, tugas, dan aktivitas lainnya.",
-        "3. Saya sering menunda-nunda (prokrastinasi) tugas akademik.",
-        "4. Saya merasa cemas saat menghadapi ujian atau presentasi.",
-        "5. Saya mengalami kesulitan memahami materi kuliah.",
-        "6. Saya merasa kurang termotivasi untuk belajar.",
-        "7. Saya merasa tekanan dari orang tua atau lingkungan untuk berprestasi.",
-        "8. Saya sulit berkonsentrasi saat belajar.",
-        "9. Saya merasa tidak percaya diri dengan kemampuan akademik saya.",
-        "10. Saya merasa kelelahan karena beban akademik yang berlebihan."
-      ];
-      foreach ($pertanyaan_akademik as $i => $soal): ?>
-        <div class="mindara-question">
-          <label class="mindara-label"><?= $soal ?></label>
-          <div class="mindara-options">
-            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="0" required> Tidak Pernah</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="1"> Kadang-kadang</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="2"> Sering</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban_akademik[<?= $i ?>]" value="3"> Sangat Sering</label>
-          </div>
-        </div>
-    <?php endforeach; ?>
+      // Check if numeric and integers with no decimals
+      if (
+          is_numeric($x_raw) && is_numeric($y_raw) && is_numeric($z_raw) &&
+          ctype_digit(strval($x_raw)) && ctype_digit(strval($y_raw)) && ctype_digit(strval($z_raw))
+      ) {
+          // Cast to int
+          $x = (int)$x_raw;
+          $y = (int)$y_raw;
+          $z = (int)$z_raw;
 
-  <?php elseif ($step === 3): ?>
-    <h1 class="mindara-heading">Tes Kesehatan Keuangan Mahasiswa</h1>
-    <?php
-      $pertanyaan_keuangan = [
-        "1. Saya merasa cukup dengan uang bulanan yang saya miliki.",
-        "2. Saya kesulitan mengatur uang bulanan agar cukup sampai akhir bulan.",
-        "3. Saya sering merasa stres karena masalah keuangan.",
-        "4. Saya bisa menabung sebagian dari uang bulanan saya.",
-        "5. Saya memiliki rencana keuangan jangka panjang.",
-        "6. Saya menggunakan aplikasi atau alat untuk mencatat pengeluaran saya.",
-        "7. Saya sering meminjam uang untuk memenuhi kebutuhan sehari-hari.",
-        "8. Saya merasa puas dengan kondisi keuangan saya saat ini.",
-        "9. Saya paham tentang konsep investasi dasar.",
-        "10. Saya pernah mengikuti seminar atau pelatihan tentang literasi keuangan."
-      ];
-      foreach ($pertanyaan_keuangan as $i => $soal): ?>
-        <div class="mindara-question">
-          <label class="mindara-label"><?= $soal ?></label>
-          <div class="mindara-options">
-            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="0" required> Sangat Setuju</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="1"> Setuju</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="2"> Tidak Setuju</label>
-            <label class="mindara-option-label"><input type="radio" name="jawaban_keuangan[<?= $i ?>]" value="3"> Sangat Tidak Setuju</label>
-          </div>
-        </div>
-    <?php endforeach; ?>
+          // Check range 0 to max_input
+          if ($x < 0 || $x > $max_input || $y < 0 || $y > $max_input || $z < 0 || $z > $max_input) {
+              $error = "Nilai X, Y, dan Z harus antara 0 sampai $max_input.";
+          } else {
+              // Calculate vector magnitude
+              $magnitude = sqrt($x*$x + $y*$y + $z*$z);
+
+              // Normalize to 100 scale
+              $score = ($magnitude / $max_magnitude) * 100;
+              $score = round($score); // Round to nearest integer
+
+              // Determine stress level
+              if ($score <= 33) {
+                  $level = 'Rendah';
+                  $level_class = 'level-low';
+                  $recommendation = "Anda memiliki tingkat stress rendah. Jaga pola hidup sehat dan rutin relaksasi.";
+              } elseif ($score <= 66) {
+                  $level = 'Sedang';
+                  $level_class = 'level-medium';
+                  $recommendation = "Anda memiliki tingkat stress sedang. Perhatikan manajemen waktu dan coba teknik relaksasi.";
+              } else {
+                  $level = 'Tinggi';
+                  $level_class = 'level-high';
+                  $recommendation = "Anda memiliki tingkat stress tinggi. Disarankan untuk konsultasi dengan profesional atau praktikkan teknik relaksasi yang intensif.";
+              }
+
+              // Prepare result html
+              $result = "<div>
+                <p>Nilai vektor hasil analisis: <strong>$score</strong> (Skala 0-100)</p>
+                <p>Tingkat Stress: <span class=\"$level_class\">$level</span></p>
+                <p><em>Rekomendasi:</em> $recommendation</p>
+              </div>";
+          }
+      } else {
+          $error = "Mohon masukkan nilai bilangan bulat (tanpa desimal) untuk X, Y, dan Z.";
+      }
+  }
+  ?>
+
+  <form method="POST" action="">
+    <label for="x">Nilai X (0 - <?php echo $max_input; ?>):</label>
+    <input type="number" id="x" name="x" min="0" max="<?php echo $max_input; ?>" step="1" value="<?php echo htmlspecialchars($x ?? ''); ?>" required />
+    
+    <label for="y">Nilai Y (0 - <?php echo $max_input; ?>):</label>
+    <input type="number" id="y" name="y" min="0" max="<?php echo $max_input; ?>" step="1" value="<?php echo htmlspecialchars($y ?? ''); ?>" required />
+    
+    <label for="z">Nilai Z (0 - <?php echo $max_input; ?>):</label>
+    <input type="number" id="z" name="z" min="0" max="<?php echo $max_input; ?>" step="1" value="<?php echo htmlspecialchars($z ?? ''); ?>" required />
+    
+    <button type="submit">Analisis</button>
+  </form>
+  
+  <?php if ($error): ?>
+    <div class="result" style="color:#f87171; font-weight:700; margin-top:1rem;">
+      <?php echo htmlspecialchars($error); ?>
+    </div>
+  <?php elseif ($result): ?>
+    <div class="result">
+      <?php echo $result; ?>
+    </div>
   <?php endif; ?>
-
-  <hr class="mindara-hr">
-  <button class="mindara-submit-btn" type="submit"><?= $step < 3 ? 'Lanjut' : 'Kirim Semua' ?></button>
-</form>
 </div>
-
-<script src="js/script.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
