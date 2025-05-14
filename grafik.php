@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'config.php'; // Make sure config.php is in the same directory or provide the correct path
+require 'config.php'; // Pastikan config.php ada di direktori yang sama atau sesuaikan path
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -24,14 +24,14 @@ $result_7days = mysqli_stmt_get_result($stmt_7days);
 $dates = [];
 $totals = [];
 
-// Initialize with default data for the last 7 days
+// Inisialisasi dengan data default untuk 7 hari terakhir
 for ($i = 6; $i >= 0; $i--) {
     $date = date('d M', strtotime("-$i days"));
     $dates[] = $date;
-    $totals[] = 0; // Default value
+    $totals[] = 0; // Nilai default
 }
 
-// Populate with data from the database
+// Isi dengan data dari database
 while ($row = mysqli_fetch_assoc($result_7days)) {
     $date_index = array_search(date('d M', strtotime($row['date'])), $dates);
     if ($date_index !== false) {
@@ -54,7 +54,7 @@ $result_today = mysqli_stmt_get_result($stmt_today);
 $today_data = mysqli_fetch_assoc($result_today);
 mysqli_stmt_close($stmt_today);
 
-// Prepare data for 3D graph
+// Siapkan data untuk grafik 3D
 $vector_data = null;
 if ($today_data) {
     $stress_total_raw = $today_data['stress_total'];
@@ -62,24 +62,24 @@ if ($today_data) {
     $keuangan_total_raw = $today_data['keuangan_total'];
     $normalized_score = $today_data['normalized_score'];
 
-    // Normalize to 0-10 scale (assuming max raw score for each category is 30)
+    // Normalisasi ke skala 0-10
     $stress_norm = ($stress_total_raw / 30) * 10;
     $akademik_norm = ($akademik_total_raw / 30) * 10;
     $keuangan_norm = ($keuangan_total_raw / 30) * 10;
 
-    // Calculate magnitude of the 0-10 scaled vector
+    // Hitung magnitude dari vektor skala 0-10
     $magnitude = sqrt(pow($stress_norm, 2) + pow($akademik_norm, 2) + pow($keuangan_norm, 2));
 
     $vector_data = [
-        'date' => date('d M Y', strtotime($today_data['created_at'])), // Full date for clarity
-        'total' => $normalized_score, // This is the overall normalized score (0-100)
-        'magnitude' => $magnitude,     // Magnitude of the (stress_norm, akademik_norm, keuangan_norm) vector
-        'stress' => $stress_norm,     // Component value (0-10)
-        'akademik' => $akademik_norm,   // Component value (0-10)
-        'keuangan' => $keuangan_norm,   // Component value (0-10)
-        'x' => $stress_norm,           // For 3D plot x-axis
-        'y' => $akademik_norm,         // For 3D plot y-axis
-        'z' => $keuangan_norm          // For 3D plot z-axis
+        'date' => date('d M Y', strtotime($today_data['created_at'])),
+        'total' => $normalized_score,
+        'magnitude' => $magnitude,
+        'stress' => $stress_norm,
+        'akademik' => $akademik_norm,
+        'keuangan' => $keuangan_norm,
+        'x' => $stress_norm,
+        'y' => $akademik_norm,
+        'z' => $keuangan_norm
     ];
 }
 ?>
@@ -97,7 +97,7 @@ if ($today_data) {
         .mindara-container { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 90%; max-width: 1000px; }
         .mindara-heading { color: #3498db; text-align: center; margin-bottom: 30px; font-size: 24px; }
         .chart-container { width: 100%; height: 400px; margin-bottom: 40px; background-color: #fff; padding:10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
-        #vector3d-container { width: 100%; height: 450px; margin-top: 20px; margin-bottom:20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        #vector3d-container { width: 100%; height: 450px; margin-top: 20px; margin-bottom:20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative; /* Untuk positioning canvas */}
         .controls { text-align: center; margin-bottom: 20px; }
         .controls button { padding: 10px 15px; margin: 0 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
         .controls button:hover { background-color: #2980b9; }
@@ -126,7 +126,7 @@ if ($today_data) {
             color: #6c5ce7;
             margin-top: 0;
             margin-bottom: 20px;
-            font-family: 'Playfair Display', serif; /* Ensure this font is loaded or use a fallback */
+            font-family: 'Playfair Display', serif; 
             font-size: 1.5em;
             display: flex;
             align-items: center;
@@ -159,7 +159,7 @@ if ($today_data) {
         .rekomendasi-box li.rekomendasi-item svg {
             position: absolute;
             left: 0;
-            top: 5px; /* Adjusted for better alignment */
+            top: 5px;
             width: 18px;
             height: 18px;
             color: #6c5ce7;
@@ -208,7 +208,7 @@ if ($today_data) {
                 <ul>
                     <?php
                     if (!empty($vector_data)) {
-                        $total_score_for_level = $vector_data['total']; // This is normalized_score (0-100)
+                        $total_score_for_level = $vector_data['total'];
                         $stress_level_text = '';
                         $recommendations_list = [];
                         
@@ -251,7 +251,7 @@ if ($today_data) {
                                     ' . htmlspecialchars($rec_item) . '
                                   </li>';
                         }
-                    } else { // Should not happen if $vector_data is true, but as a fallback
+                    } else { 
                         echo '<li class="no-data-message">Data tidak cukup untuk menampilkan rekomendasi.</li>';
                     }
                     ?>
@@ -301,7 +301,7 @@ if ($today_data) {
                         backgroundColor: 'rgba(52, 152, 219, 0.2)',
                         borderColor: '#3498db',
                         borderWidth: 2,
-                        tension: 0.4, // Smoother curve
+                        tension: 0.4,
                         fill: true,
                         pointBackgroundColor: '#3498db',
                         pointBorderColor: '#fff',
@@ -315,7 +315,7 @@ if ($today_data) {
                     scales: {
                         y: { 
                             beginAtZero: true,
-                            max: 100, // Assuming total score is 0-100
+                            max: 100,
                             title: { display: true, text: 'Skor Stres (0-100)', font: {size: 14} }
                         },
                         x: {
@@ -335,115 +335,152 @@ if ($today_data) {
         const container = document.getElementById('vector3d-container');
         if (container) {
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf0f2f5); // Light grey background
+            scene.background = new THREE.Color(0xf0f2f5);
             
             const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(8, 8, 15); // Adjusted camera position for better initial view
+            camera.position.set(10, 10, 17); // Adjusted camera for better view with new axes
             
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio); // For sharper rendering on high DPI screens
+            renderer.setPixelRatio(window.devicePixelRatio);
             container.appendChild(renderer.domElement);
             
             const controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.minDistance = 5; // Zoom constraints
+            controls.minDistance = 5;
             controls.maxDistance = 50;
             
-            scene.add(new THREE.AmbientLight(0xffffff, 0.7)); // Softer ambient light
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
             
-            // Axes Helper: X (Red), Y (Green), Z (Blue) standard
-            const axesHelper = new THREE.AxesHelper(10); // Length of axes lines
-            scene.add(axesHelper);
+            // === MEMBUAT SUMBU KOORDINAT YANG LEBIH TEBAL ===
+            const axisLength = 10;
+            const axisRadius = 0.06; // Ketebalan batang sumbu
+            const headRadius = 0.25;  // Radius dasar mata panah
+            const headHeight = 0.7;  // Tinggi mata panah
+            const segments = 12;     // Segmen untuk kehalusan silinder/kerucut
+
+            // Fungsi untuk membuat satu sumbu
+            function createAxis(axisParams) {
+                const { direction, color, name } = axisParams;
+                const group = new THREE.Group();
+
+                // Batang Sumbu (Silinder)
+                const cylinderGeom = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, segments);
+                const cylinderMat = new THREE.MeshBasicMaterial({ color: color });
+                const cylinder = new THREE.Mesh(cylinderGeom, cylinderMat);
+                
+                // Mata Panah (Kerucut)
+                const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, segments);
+                const cone = new THREE.Mesh(coneGeom, cylinderMat); // Gunakan material yang sama
+
+                if (name === 'x') {
+                    cylinder.rotation.z = -Math.PI / 2;
+                    cylinder.position.x = axisLength / 2;
+                    cone.rotation.z = -Math.PI / 2;
+                    cone.position.x = axisLength;
+                } else if (name === 'y') {
+                    // Silinder & kerucut sudah menghadap ke Y secara default
+                    cylinder.position.y = axisLength / 2;
+                    cone.position.y = axisLength;
+                } else if (name === 'z') {
+                    cylinder.rotation.x = Math.PI / 2;
+                    cylinder.position.z = axisLength / 2;
+                    cone.rotation.x = Math.PI / 2;
+                    cone.position.z = axisLength;
+                }
+                group.add(cylinder);
+                group.add(cone);
+                scene.add(group);
+            }
+
+            // Sumbu X (Biru - Stres Umum)
+            createAxis({ direction: new THREE.Vector3(1, 0, 0), color: 0x3498db, name: 'x' });
+            // Sumbu Y (Merah - Tekanan Akademik)
+            createAxis({ direction: new THREE.Vector3(0, 1, 0), color: 0xe74c3c, name: 'y' });
+            // Sumbu Z (Hijau - Stres Keuangan)
+            createAxis({ direction: new THREE.Vector3(0, 0, 1), color: 0x2ecc71, name: 'z' });
             
             // Grid Helper
-            const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xcccccc); // Size, divisions, colorCenterLine, colorGrid
+            const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xcccccc);
             scene.add(gridHelper);
             
             const vector = <?php echo json_encode($vector_data); ?>;
             
-            let arrowDirection, arrowLength;
-            const visualScale = 0.7; // Adjust this to scale the arrow's visual length if needed (e.g. if max value is 10, arrow could be length 7)
+            let arrowDirection, mainArrowLength; // Renamed arrowLength to mainArrowLength
+            const visualScale = 0.7; 
 
             if (vector.magnitude === 0) {
-                // For zero magnitude, direction can be (0,0,0) or a default like (0,1,0) for consistency if an object must be added.
-                // An arrow of length 0 is invisible.
-                arrowDirection = new THREE.Vector3(0, 0, 0); // Vector3's normalize() handles (0,0,0) by returning (0,0,0)
-                arrowLength = 0;
+                arrowDirection = new THREE.Vector3(0, 0, 0); 
+                mainArrowLength = 0;
             } else {
-                // vector.x, .y, .z are already the 0-10 scaled values
                 arrowDirection = new THREE.Vector3(vector.x, vector.y, vector.z).normalize();
-                // Let arrow length be proportional to magnitude, but capped or scaled for visualization
-                arrowLength = vector.magnitude * visualScale; // Scale magnitude for visual length
+                mainArrowLength = vector.magnitude * visualScale;
             }
 
-            // Arrow colors matching legend
-            // The main arrow can represent overall magnitude, or we can show component arrows.
-            // For a single vector representing the combined stress:
-            const arrowColor = 0x8e44ad; // A distinct color for the main vector, e.g., purple
-
-            const headLength = arrowLength > 0 ? Math.max(0.5, arrowLength * 0.1) : 0; // Proportional head, min size
-            const headWidth = arrowLength > 0 ? Math.max(0.3, arrowLength * 0.07) : 0; // Proportional head, min size
+            const arrowColor = 0x8e44ad; 
+            const mainHeadLength = mainArrowLength > 0 ? Math.max(0.5, mainArrowLength * 0.15) : 0; // Slightly larger head for main arrow
+            const mainHeadWidth = mainArrowLength > 0 ? Math.max(0.3, mainArrowLength * 0.1) : 0;  // Slightly larger head for main arrow
 
             const mainArrowHelper = new THREE.ArrowHelper(
                 arrowDirection,
-                new THREE.Vector3(0, 0, 0), // Origin
-                arrowLength,
+                new THREE.Vector3(0, 0, 0), 
+                mainArrowLength,
                 arrowColor, 
-                headLength,
-                headWidth 
+                mainHeadLength,
+                mainHeadWidth 
             );
             scene.add(mainArrowHelper);
 
-            // Add labels for axes
-            function createAxisLabel(text, position, color) {
+            function createAxisLabel(text, position, colorHex) {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                canvas.width = 128; canvas.height = 64;
-                context.font = 'Bold 20px Arial';
-                context.fillStyle = color;
+                canvas.width = 200; canvas.height = 64; // Increased canvas size for clarity
+                context.font = 'Bold 20px Arial'; // Font size
+                context.fillStyle = '#' + colorHex.toString(16).padStart(6, '0'); // Convert hex number to string
                 context.textAlign = 'center';
-                context.fillText(text, canvas.width/2, canvas.height/2 + 8);
+                context.textBaseline = 'middle';
+                context.fillText(text, canvas.width/2, canvas.height/2);
                 const texture = new THREE.CanvasTexture(canvas);
-                const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
                 const sprite = new THREE.Sprite(spriteMaterial);
                 sprite.position.copy(position);
-                sprite.scale.set(2, 1, 1);
+                sprite.scale.set(3, 1.5, 1); // Scale of the sprite
                 return sprite;
             }
-            scene.add(createAxisLabel('X (Stres)', new THREE.Vector3(11, 0, 0), '#3498db'));
-            scene.add(createAxisLabel('Y (Akademik)', new THREE.Vector3(0, 11, 0), '#e74c3c'));
-            scene.add(createAxisLabel('Z (Keuangan)', new THREE.Vector3(0, 0, 11), '#2ecc71'));
+            // Posisi label sedikit di luar sumbu
+            const labelOffset = 1.2;
+            scene.add(createAxisLabel('X: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
+            scene.add(createAxisLabel('Y: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
+            scene.add(createAxisLabel('Z: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
 
 
-            // Add data label at the tip of the arrow
             const labelCanvas = document.createElement('canvas');
-            labelCanvas.width = 200; 
-            labelCanvas.height = 100;
+            labelCanvas.width = 220; 
+            labelCanvas.height = 110;
             const labelContext = labelCanvas.getContext('2d');
-            labelContext.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Semi-transparent background
+            labelContext.fillStyle = 'rgba(40, 40, 40, 0.75)'; 
             labelContext.fillRect(0, 0, labelCanvas.width, labelCanvas.height);
-            labelContext.font = 'Bold 16px Arial';
+            labelContext.font = 'Bold 18px Arial';
             labelContext.fillStyle = '#FFFFFF';
             labelContext.textAlign = 'center';
             labelContext.fillText(`Skor: ${vector.total.toFixed(0)}`, labelCanvas.width/2, 30);
-            labelContext.font = '14px Arial';
-            labelContext.fillText(`Mag: ${vector.magnitude.toFixed(2)}`, labelCanvas.width/2, 55);
-            labelContext.fillText(`(${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}, ${vector.z.toFixed(1)})`, labelCanvas.width/2, 80);
+            labelContext.font = '15px Arial';
+            labelContext.fillText(`Magnitude Vektor: ${vector.magnitude.toFixed(2)}`, labelCanvas.width/2, 60);
+            labelContext.fillText(`(X:${vector.x.toFixed(1)}, Y:${vector.y.toFixed(1)}, Z:${vector.z.toFixed(1)})`, labelCanvas.width/2, 90);
             
             const labelTexture = new THREE.CanvasTexture(labelCanvas);
-            const labelSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTexture, depthTest: false }));
+            const labelSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTexture, depthTest: false, transparent: true }));
             
-            if (arrowLength > 0) {
-                labelSprite.position.copy(arrowDirection).multiplyScalar(arrowLength).add(new THREE.Vector3(0, 0.5, 0)); // Position slightly above arrow tip
+            if (mainArrowLength > 0) {
+                labelSprite.position.copy(arrowDirection).multiplyScalar(mainArrowLength).add(new THREE.Vector3(0, 0.7, 0)); 
             } else {
-                labelSprite.position.set(0, 0.5, 0); // At origin if no arrow
+                labelSprite.position.set(0, 0.7, 0); 
             }
-            labelSprite.scale.set(3, 1.5, 1); // Adjust sprite scale
+            labelSprite.scale.set(3.5, 1.75, 1); 
             scene.add(labelSprite);
             
             let autoRotate = false;
@@ -459,16 +496,16 @@ if ($today_data) {
             if (resetButton) {
                 resetButton.addEventListener('click', () => {
                     controls.reset();
-                    camera.position.set(8, 8, 15); // Reset to initial position
-                    autoRotate = false; // Stop rotation on reset
+                    camera.position.set(10, 10, 17); 
+                    autoRotate = false; 
                      if(rotateButton) rotateButton.textContent = 'Aktifkan Rotasi Otomatis';
                 });
             }
             
             function animate() {
                 requestAnimationFrame(animate);
-                if (autoRotate && arrowLength > 0) { // Only rotate if there's something to see and autoRotate is on
-                    scene.rotation.y += 0.003; // Rotate the whole scene for a turntable effect
+                if (autoRotate && mainArrowLength > 0) { 
+                    scene.rotation.y += 0.003; 
                 }
                 controls.update();
                 renderer.render(scene, camera);
