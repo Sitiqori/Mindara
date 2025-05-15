@@ -15,7 +15,7 @@
 <body>
 <header id="navbar">
   <div class="logo">
-    <img src="images/mindara.png" alt="Mindara Logo" class="logo-img" />
+    <img src="images/logo-mindara.png" alt="Mindara Logo" class="logo-img" />
   </div>
   <nav>
     <a href="index.php">Beranda</a>
@@ -35,7 +35,7 @@
   <section class="hero">
     <div class="hero-content">
       <div class="hero-left">
-        <img src="images/mindara-logo.png" alt="Mindara Logo" class="logo">
+        <img src="images/logo.png" alt="Mindara Logo" class="logo">
         <p>“A calm space where anyone can understand their emotions, check their stress levels, and start healing—one breath at a time”</p>
         <a href="analisis.php" class="mulai-button">Mulai Sekarang</a>
       </div>
@@ -82,8 +82,8 @@
           <p>Berdasarkan pola yang dihitung dari logika kalkulus.</p>
         </div>
         <div class="card2">
-          <h3>Prediksi 7 Hari</h3>
-          <p>Menampilkan grafik tingkat overthinking selama 7 hari ke depan.</p>
+          <h3>Data 7 Hari</h3>
+          <p>Menampilkan grafik tingkat overthinking selama 7 hari.</p>
         </div>
         <div class="card3">
           <h3>Insight Sederhana</h3>
@@ -133,8 +133,8 @@
   <footer>
     <div class="brand-footer">
       <div>
-        <img src="images/mindara.png" 
-          width="70px" height="28px" alt>
+      <img src="images/logo.png" 
+      width="70px" height="40px" alt>
       </div>
     </div>
     <main>

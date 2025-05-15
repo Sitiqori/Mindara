@@ -13,7 +13,7 @@
 <body>
 <header id="navbar">
   <div class="logo">
-    <img src="images/mindara.png" alt="Mindara Logo" class="logo-img" />
+    <img src="images/logo-mindara.png" alt="Mindara Logo" class="logo-img" />
   </div>
   <nav>
     <a href="index.php">Beranda</a>
@@ -31,7 +31,7 @@
 
 <!-- SECTION 0: Tentang Mindara -->
 <section class="tentang-intro" >
-  <img src="images/mindara-logo.png" alt="Mindara Logo" class="tentang-logo">
+  <img src="images/logo.png" alt="Mindara Logo" class="tentang-logo">
   <div class="tentang-content">
     <h1> <span style="color: #C1121F;">Mindara</span>: Ruang untuk Mendengarkan Diri Sendiri</h1>
     <p>Mindara adalah ruang digital yang hadir untuk membantumu memahami perasaanmu sendiri.</p>
@@ -65,7 +65,7 @@
       <div class="mk-card">
         <div class="mk-icon">📈</div>
         <h4>Pola Deret Stres</h4>
-        <p>Dengan konsep deret, kita bisa melihat pola peningkatan beban dari waktu ke waktu dan membuat prediksi selama 7 hari ke depan. Jadi, kalkulus di sini bukan soal rumus panjang, tapi tentang menyederhanakan hidup menjadi angka yang bisa dianalisis.</p>
+        <p>Dengan konsep deret, kita bisa melihat pola peningkatan beban dari waktu ke waktu. Jadi, kalkulus di sini bukan soal rumus panjang, tapi tentang menyederhanakan hidup menjadi angka yang bisa dianalisis.</p>
       </div>
       <div class="mk-card">
         <div class="mk-icon">🧭</div>
@@ -77,7 +77,7 @@
 </section>
 
 <section class="tech-section">
-  <img src="images/mindara-logo.png" alt="Mindara Logo" class="tech-logo">
+  <img src="images/logo.png" alt="Mindara Logo" class="tech-logo">
   <h2>Teknologi yang Digunakan</h2>
 
   <div class="tech-slider-wrapper">
@@ -213,8 +213,8 @@
   <footer>
     <div class="brand-footer">
       <div>
-        <img src="images/mindara.png" 
-          width="70px" height="28px" alt>
+        <img src="images/logo.png" 
+          width="70px" height="40px" alt>
       </div>
     </div>
     <main>
