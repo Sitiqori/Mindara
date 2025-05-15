@@ -86,6 +86,23 @@ if ($today_data) {
 
 <!DOCTYPE html>
 <html>
+<header id="navbar">
+  <div class="logo">
+    <img src="images/logo-mindara.png" alt="Mindara Logo" class="logo-img" />
+  </div>
+  <nav style="margin-right: 3rem;">
+    <a href="index.php">Beranda</a>
+    <a href="analisis.php">Analisis</a>
+    <a href="tentang.php">Tentang</a>
+
+    <?php if (isset($_SESSION['user_name'])): ?>
+      <a href="profile.php" class="user-greeting">Halo, <?= htmlspecialchars($_SESSION['user_name']); ?>!</a>
+      <a href="logout.php" style="margin-left: 10px;">Logout</a>
+    <?php else: ?>
+      <a href="sign-in.php" class="login-link">Login</a>
+    <?php endif; ?>
+  </nav>
+</header>
 <head>
     <title>Hasil Tes Stres</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -114,6 +131,63 @@ if ($today_data) {
         .vector-component:last-child { border-bottom: none; }
         .vector-component span:first-child { font-weight: bold; color: #555; }
         /* Styles for Recommendation Box */
+        header {
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0rem 1.5rem 0rem;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: box-shadow 0.3s ease;
+            -webkit-transition: box-shadow 0.3s ease;
+            -moz-transition: box-shadow 0.3s ease;
+            -ms-transition: box-shadow 0.3s ease;
+            -o-transition: box-shadow 0.3s ease;
+            }
+
+            header.shadow {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+
+            .logo-img {
+            height: 30px;
+            object-fit: contain;
+            margin-left: 3rem;
+            }
+
+            .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: #7B0000;
+            }
+            nav a {
+            margin-left: 1.5rem;
+            text-decoration: none;
+            color: #002B45;
+            font-weight: 500;
+            position: relative;
+            }
+
+            nav a:hover {
+            color: #002B45;
+            text-decoration: underline;
+            }
+
+            .login-link {
+            border: 2px solid #669BBC; /* Change this color as needed */
+            padding: 5px 10px; /* Optional: Adds some spacing */
+            border-radius: 5px; /* Optional: Rounds the corners */
+            transition: border-color 0.3s; /* Smooth transition on hover */
+            }
+
+            .login-link:hover {
+            border-color: #002B45; /* Change border color on hover */
+            }
         .rekomendasi-box {
             margin-top: 30px;
             background: linear-gradient(135deg, #f8f4ff 0%, #eef2ff 100%);
@@ -168,7 +242,7 @@ if ($today_data) {
 
     </style>
 </head>
-<body>
+<body style="margin-top: 7rem;">
     <div class="mindara-wrapper">
         <div class="mindara-container">
             <h2 class="mindara-heading">Visualisasi Perkembangan Stres Anda</h2>

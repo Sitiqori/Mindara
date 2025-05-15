@@ -197,7 +197,7 @@ $conn->close();
         }
         
         h1 {
-            color: #2a9d8f;
+            color: #002B45;
             margin-bottom: 30px;
             text-align: center;
         }
@@ -210,7 +210,7 @@ $conn->close();
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #2a9d8f;
+            color: #002B45;
         }
         
         input, select, textarea {
@@ -228,7 +228,7 @@ $conn->close();
         }
         
         button, .upload-btn {
-            background-color: #2a9d8f;
+            background-color: #002B45;
             color: white;
             border: none;
             padding: 14px 28px;
@@ -239,7 +239,7 @@ $conn->close();
         }
         
         button:hover, .upload-btn:hover {
-            background-color: #238b7e;
+            background-color: #002B45;
         }
         
         .button-group {
@@ -250,7 +250,15 @@ $conn->close();
         
         .secondary-button {
             background-color: #e9e9e9;
+            width: 5rem;
+            height: 3rem; 
             color: #333;
+            border-radius:5px;
+            display: flex;               
+            justify-content: center; 
+            align-items: center;       
+            border: none;              
+            cursor: pointer;            
         }
         
         .secondary-button:hover {
@@ -305,7 +313,7 @@ $conn->close();
         
         .progress-bar {
             height: 100%;
-            background-color : #2a9d8f;
+            background-color : #002B45;
             border-radius: 5px;
         }
         
@@ -344,7 +352,7 @@ $conn->close();
 
         #stress_percentage {
             font-weight: bold;
-            color: #2a9d8f;
+            color: #002B45;
             margin-left: 10px;
         }
 

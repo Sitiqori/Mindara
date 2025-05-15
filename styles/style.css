@@ -33,7 +33,7 @@ header.shadow {
 }
 
 .logo-img {
-  height: 50px;
+  height: 30px;
   object-fit: contain;
 }
 
@@ -92,7 +92,7 @@ nav a:hover {
 }
 
 .hero-left .logo {
-  width: 300px; /* Adjusted logo width */
+  width: 350px; /* Adjusted logo width */
   margin-bottom: 0; 
 }
 
@@ -134,7 +134,8 @@ nav a:hover {
 }
 
 .mulai-button {
-  background-color: #C1121F;
+  background-color: #669BBC;
+  border-radius: 10px;
   color: #ffffff;
   padding: 10px;
   width: 100%;
@@ -142,10 +143,10 @@ nav a:hover {
   border-radius: 0px;
   text-decoration: none;
   transition: background-color 0.3s ease;
-  -webkit-border-radius: 0px;
-  -moz-border-radius: 0px;
-  -ms-border-radius: 0px;
-  -o-border-radius: 0px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
 }
 
 
@@ -698,7 +699,7 @@ justify-content: center;
 }
 
 .auth-left {
-background: #780000;
+background: #003049;
 color: #fff;
 }
 
@@ -734,7 +735,7 @@ background: rgba(255, 255, 255, 0.1);
 }
 
 .auth-title-green {
-color: #780000;
+color: #003049;
 margin-bottom: 12px;
 }
 
@@ -751,7 +752,7 @@ border: none;
 background: #e4f4f3;
 border-radius: 50%;
 font-weight: bold;
-color: #780000;
+color: #669BBC;
 cursor: pointer;
 }
 
@@ -773,7 +774,7 @@ border-radius: 8px;
 .auth-btn-solid {
 width: 100%;
 padding: 12px;
-background: #780000;
+background: #002B45;
 color: white;
 border: none;
 border-radius: 25px;
@@ -796,7 +797,7 @@ opacity: 0.7;
 }
 
 .auth-info-left {
-background: #780000;
+background: #002B45;
 color: #fff;
 text-align: center;
 z-index: 2;
@@ -804,7 +805,7 @@ z-index: 2;
 
 .auth-form-right {
 background: #fff;
-color: #780000;
+color: #003049;
 z-index: 1;
 }
 
@@ -816,7 +817,7 @@ pointer-events: none;
 
 .auth-slide-container.slide-active .auth-info-left {
 background: #f2f2f2;
-color: #780000;
+color: #003049;
 }
 
 /* Sign-In */
@@ -856,12 +857,12 @@ transition: all 0.6s ease;
 
 .auth-form-left {
 background: #fff;
-color: #780000;
+color: #002B45;
 z-index: 2;
 }
 
 .auth-info-right {
-background: #780000;
+background: #002B45;
 text-align: center;
 color: #f2f2f2;
 z-index: 1;
@@ -874,7 +875,7 @@ pointer-events: none;
 }
 
 .auth-slide-container.slide-active .auth-info-right {
-background: #780000;
+background: #002B45;
 color: #fff;
 }
 
@@ -897,7 +898,7 @@ background: rgba(0, 0, 0, 0.05);
 .auth-btn-solid {
 width: 100%;
 padding: 12px;
-background: #780000;
+background: #002B45;
 color: white;
 border: none;
 border-radius: 25px;
@@ -906,7 +907,7 @@ cursor: pointer;
 }
 
 .auth-btn-solid:hover {
-background: #C1121F;
+background: #669BBC;
 }
 
 .hidden {
