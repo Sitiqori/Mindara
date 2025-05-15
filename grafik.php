@@ -62,12 +62,12 @@ if ($today_data) {
     $keuangan_total_raw = $today_data['keuangan_total'];
     $normalized_score = $today_data['normalized_score'];
 
-    // Normalisasi ke skala 0-10
-    $stress_norm = ($stress_total_raw / 30) * 10;
-    $akademik_norm = ($akademik_total_raw / 30) * 10;
-    $keuangan_norm = ($keuangan_total_raw / 30) * 10;
+    // Hapus normalisasi, gunakan nilai asli (0-30)
+    $stress_norm = $stress_total_raw;
+    $akademik_norm = $akademik_total_raw;
+    $keuangan_norm = $keuangan_total_raw;
 
-    // Hitung magnitude dari vektor skala 0-10
+    // Hitung magnitude dari vektor skala 0-30
     $magnitude = sqrt(pow($stress_norm, 2) + pow($akademik_norm, 2) + pow($keuangan_norm, 2));
 
     $vector_data = [
@@ -259,16 +259,16 @@ if ($today_data) {
             </div>
             <div id="vector3d-container"></div>
             
-            <div class="legend">
-                <h3>Legenda Sumbu 3D (Skala 0-10)</h3>
+           <div class="legend">
+                <h3>Legenda Sumbu 3D (Skala 0-)</h3>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #3498db;"></div> <span>Sumbu X: Stres Umum (Nilai: <?= number_format($vector_data['stress'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #2ecc71;"></div> <span>Sumbu X: Stres Keuangan (Nilai: <?= number_format($vector_data['keuangan'], 2) ?>)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #e74c3c;"></div> <span>Sumbu Y: Tekanan Akademik (Nilai: <?= number_format($vector_data['akademik'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #3498db;"></div> <span>Sumbu Y: Stres Umum (Nilai: <?= number_format($vector_data['stress'], 2) ?>)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #2ecc71;"></div> <span>Sumbu Z: Stres Keuangan (Nilai: <?= number_format($vector_data['keuangan'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #e74c3c;"></div> <span>Sumbu Z: Tekanan Akademik (Nilai: <?= number_format($vector_data['akademik'], 2) ?>)</span>
                 </div>
             </div>
             
@@ -337,19 +337,19 @@ if ($today_data) {
                 <div class="vector-day-card">
                     <h4>Tanggal: <?= htmlspecialchars($vector_data['date']) ?></h4>
                     <p><strong>Skor Stres Keseluruhan (0-100):</strong> <?= round($vector_data['total']) ?></p>
-                    <p><strong>Besaran Vektor (Magnitude 0-10 komponen):</strong> <?= number_format($vector_data['magnitude'], 2) ?></p>
-                    <p><strong>Komponen Vektor (Skala 0-10):</strong></p>
+                    <p><strong>Besaran Vektor :</strong> <?= number_format($vector_data['magnitude'], 2) ?></p>
+                    <p><strong>Komponen Vektor (Skala 0-30):</strong></p>
                     <div class="vector-components">
                         <div class="vector-component">
-                            <span>X (Stres Umum):</span>
+                            <span>X (Stres Keuangan):</span>
                             <span><?= number_format($vector_data['x'], 2) ?></span>
                         </div>
                         <div class="vector-component">
-                            <span>Y (Tekanan Akademik):</span>
+                            <span>Y (Stres Umum):</span>
                             <span><?= number_format($vector_data['y'], 2) ?></span>
                         </div>
                         <div class="vector-component">
-                            <span>Z (Stres Keuangan):</span>
+                            <span>Z (Tekanan Akademik):</span>
                             <span><?= number_format($vector_data['z'], 2) ?></span>
                         </div>
                     </div>
@@ -527,9 +527,9 @@ if ($today_data) {
             }
             // Posisi label sedikit di luar sumbu
             const labelOffset = 1.2;
-            scene.add(createAxisLabel('X: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
-            scene.add(createAxisLabel('Y: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
-            scene.add(createAxisLabel('Z: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
+            scene.add(createAxisLabel('Y: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
+            scene.add(createAxisLabel('Z: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
+            scene.add(createAxisLabel('X: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
 
 
             const labelCanvas = document.createElement('canvas');
