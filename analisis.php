@@ -28,34 +28,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Calculate total scores per category
         $stress_total = array_sum(array_slice($jawaban, 0, 10));
-        $akademik_total = array_sum(array_slice($jawaban, 10, 10));
-        $keuangan_total = array_sum(array_slice($jawaban, 20, 10));
-        $total = $stress_total + $akademik_total + $keuangan_total;
+      $akademik_total = array_sum(array_slice($jawaban, 10, 10));
+      $keuangan_total = array_sum(array_slice($jawaban, 20, 10));
+      $total = $stress_total + $akademik_total + $keuangan_total;
 
-        // Calculate vector magnitude
-        $max_input = 30; // Maximum score for each question (3 * 10 questions)
-        $max_magnitude = sqrt(3 * pow($max_input, 2)); // ~173.205
-        $magnitude = sqrt(pow($stress_total, 2) + pow($akademik_total, 2) + pow($keuangan_total, 2));
-        $normalized_score = ($magnitude / $max_magnitude) * 100;
+      // Rumus vektor 3D yang diperbarui untuk mendapatkan skor maksimum 100
+      $max_per_category = 30; // Maximum score for each category (3 * 10 questions)
+      $max_magnitude = sqrt(pow($max_per_category, 2) + pow($max_per_category, 2) + pow($max_per_category, 2)); // ≈ 51.96
+      $magnitude = sqrt(pow($stress_total, 2) + pow($akademik_total, 2) + pow($keuangan_total, 2));
+      $normalized_score = ($magnitude / $max_magnitude) * 100;
 
-        // Round the normalized score to the nearest integer
-        $normalized_score = round($normalized_score);
+      // Round the normalized score to the nearest integer
+      $normalized_score = round($normalized_score);
 
-        // Determine stress level
-        if ($normalized_score <= 33) {
-            $level = 'Rendah';
-            $level_class = 'level-low';
-            $recommendation = "Anda memiliki tingkat stress rendah. Jaga pola hidup sehat dan rutin relaksasi.";
-        } elseif ($normalized_score <= 66) {
-            $level = 'Sedang';
-            $level_class = 'level-medium';
-            $recommendation = "Anda memiliki tingkat stress sedang. Perhatikan manajemen waktu dan coba teknik relaksasi.";
-        } else {
-            $level = 'Tinggi';
-            $level_class = 'level-high';
-            $recommendation = "Anda memiliki tingkat stress tinggi. Disarankan untuk konsultasi dengan profesional atau praktikkan teknik relaksasi yang intensif.";
-        }
-
+      // Determine stress level
+      if ($normalized_score <= 33) {
+          $level = 'Rendah';
+          $level_class = 'level-low';
+          $recommendation = "Anda memiliki tingkat stress rendah. Jaga pola hidup sehat dan rutin relaksasi.";
+      } elseif ($normalized_score <= 66) {
+          $level = 'Sedang';
+          $level_class = 'level-medium';
+          $recommendation = "Anda memiliki tingkat stress sedang. Perhatikan manajemen waktu dan coba teknik relaksasi.";
+      } else {
+          $level = 'Tinggi';
+          $level_class = 'level-high';
+          $recommendation = "Anda memiliki tingkat stress tinggi. Disarankan untuk konsultasi dengan profesional atau praktikkan teknik relaksasi yang intensif.";
+      }
         // Prepare SQL with all columns
         $query = "INSERT INTO hasil_tes (user_id, 
                   q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, 

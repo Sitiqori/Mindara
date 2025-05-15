@@ -331,7 +331,7 @@ if ($today_data) {
                     ?>
                 </ul>
             </div>
-
+            
             <div class="vector-info">
                 <h3>Detail Vektor Stres Harian</h3>
                 <div class="vector-day-card">
@@ -430,41 +430,43 @@ if ($today_data) {
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
             
-            // === MEMBUAT SUMBU KOORDINAT YANG LEBIH TEBAL ===
-            const axisLength = 10;
-            const axisRadius = 0.06; // Ketebalan batang sumbu
-            const headRadius = 0.25;  // Radius dasar mata panah
-            const headHeight = 0.7;  // Tinggi mata panah
-            const segments = 12;     // Segmen untuk kehalusan silinder/kerucut
-
+            // === MEMBUAT SUMBU KOORDINAT YANG SAMA DENGAN PANAH UTAMA ===
+            const vector = <?php echo json_encode($vector_data); ?>;
+            const visualScale = 0.7;
+            const mainArrowLength = vector.magnitude * visualScale;
+            
+            
             // Fungsi untuk membuat satu sumbu
             function createAxis(axisParams) {
                 const { direction, color, name } = axisParams;
                 const group = new THREE.Group();
 
-                // Batang Sumbu (Silinder)
-                const cylinderGeom = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, segments);
+                // Batang Sumbu (Silinder) - sama dengan panah utama
+                const cylinderRadius = 0.1; // Dipertebal untuk menyesuaikan dengan panah utama
+                const cylinderGeom = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, mainArrowLength, 12);
                 const cylinderMat = new THREE.MeshBasicMaterial({ color: color });
                 const cylinder = new THREE.Mesh(cylinderGeom, cylinderMat);
                 
-                // Mata Panah (Kerucut)
-                const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, segments);
-                const cone = new THREE.Mesh(coneGeom, cylinderMat); // Gunakan material yang sama
+                // Mata Panah (Kerucut) - sama dengan panah utama
+                const headRadius = 0.3;  // Radius dasar mata panah
+                const headHeight = 0.7;  // Tinggi mata panah
+                const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, 12);
+                const cone = new THREE.Mesh(coneGeom, cylinderMat);
 
                 if (name === 'x') {
                     cylinder.rotation.z = -Math.PI / 2;
-                    cylinder.position.x = axisLength / 2;
+                    cylinder.position.x = mainArrowLength / 2;
                     cone.rotation.z = -Math.PI / 2;
-                    cone.position.x = axisLength;
+                    cone.position.x = mainArrowLength;
                 } else if (name === 'y') {
                     // Silinder & kerucut sudah menghadap ke Y secara default
-                    cylinder.position.y = axisLength / 2;
-                    cone.position.y = axisLength;
+                    cylinder.position.y = mainArrowLength / 2;
+                    cone.position.y = mainArrowLength;
                 } else if (name === 'z') {
                     cylinder.rotation.x = Math.PI / 2;
-                    cylinder.position.z = axisLength / 2;
+                    cylinder.position.z = mainArrowLength / 2;
                     cone.rotation.x = Math.PI / 2;
-                    cone.position.z = axisLength;
+                    cone.position.z = mainArrowLength;
                 }
                 group.add(cylinder);
                 group.add(cone);
@@ -478,26 +480,36 @@ if ($today_data) {
             // Sumbu Z (Hijau - Stres Keuangan)
             createAxis({ direction: new THREE.Vector3(0, 0, 1), color: 0x2ecc71, name: 'z' });
             
-            // Grid Helper
-            const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xcccccc);
+            // Grid Helper - disesuaikan dengan panjang sumbu
+            // Set grid size based on axis length (mainArrowLength)
+            const gridSize = mainArrowLength * 2;  // Grid will be twice as big as the axes
+            const gridDivisions = Math.ceil(mainArrowLength); // Number of divisions matches axis length
+
+            // Create grid helper with calculated size
+            const gridHelper = new THREE.GridHelper(
+                gridSize, 
+                gridDivisions, 
+                0xcccccc,  // Center line color
+                0xcccccc   // Grid line color
+            );
+
+            // Position grid at the base (y = 0)
+            gridHelper.position.y = 0;
+           
+
+scene.add(gridHelper);
             scene.add(gridHelper);
             
-            const vector = <?php echo json_encode($vector_data); ?>;
-            
-            let arrowDirection, mainArrowLength; // Renamed arrowLength to mainArrowLength
-            const visualScale = 0.7; 
-
+            let arrowDirection;
             if (vector.magnitude === 0) {
                 arrowDirection = new THREE.Vector3(0, 0, 0); 
-                mainArrowLength = 0;
             } else {
                 arrowDirection = new THREE.Vector3(vector.x, vector.y, vector.z).normalize();
-                mainArrowLength = vector.magnitude * visualScale;
             }
 
             const arrowColor = 0x8e44ad; 
-            const mainHeadLength = mainArrowLength > 0 ? Math.max(0.5, mainArrowLength * 0.15) : 0; // Slightly larger head for main arrow
-            const mainHeadWidth = mainArrowLength > 0 ? Math.max(0.3, mainArrowLength * 0.1) : 0;  // Slightly larger head for main arrow
+            const mainHeadLength = mainArrowLength > 0 ? Math.max(0.5, mainArrowLength * 0.15) : 0;
+            const mainHeadWidth = mainArrowLength > 0 ? Math.max(0.3, mainArrowLength * 0.1) : 0;
 
             const mainArrowHelper = new THREE.ArrowHelper(
                 arrowDirection,
@@ -512,9 +524,9 @@ if ($today_data) {
             function createAxisLabel(text, position, colorHex) {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                canvas.width = 200; canvas.height = 64; // Increased canvas size for clarity
-                context.font = 'Bold 20px Arial'; // Font size
-                context.fillStyle = '#' + colorHex.toString(16).padStart(6, '0'); // Convert hex number to string
+                canvas.width = 200; canvas.height = 64;
+                context.font = 'Bold 20px Arial';
+                context.fillStyle = '#' + colorHex.toString(16).padStart(6, '0');
                 context.textAlign = 'center';
                 context.textBaseline = 'middle';
                 context.fillText(text, canvas.width/2, canvas.height/2);
@@ -522,15 +534,15 @@ if ($today_data) {
                 const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
                 const sprite = new THREE.Sprite(spriteMaterial);
                 sprite.position.copy(position);
-                sprite.scale.set(3, 1.5, 1); // Scale of the sprite
+                sprite.scale.set(3, 1.5, 1);
                 return sprite;
             }
+            
             // Posisi label sedikit di luar sumbu
             const labelOffset = 1.2;
-            scene.add(createAxisLabel('Y: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
-            scene.add(createAxisLabel('Z: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
-            scene.add(createAxisLabel('X: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
-
+            scene.add(createAxisLabel('Y: Stres', new THREE.Vector3(mainArrowLength + labelOffset, 0, 0), 0x3498db));
+            scene.add(createAxisLabel('Z: Akademik', new THREE.Vector3(0, mainArrowLength + labelOffset, 0), 0xe74c3c));
+            scene.add(createAxisLabel('X: Keuangan', new THREE.Vector3(0, 0, mainArrowLength + labelOffset), 0x2ecc71));
 
             const labelCanvas = document.createElement('canvas');
             labelCanvas.width = 220; 
