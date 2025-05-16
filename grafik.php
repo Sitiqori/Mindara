@@ -113,7 +113,7 @@ if ($today_data) {
         .mindara-wrapper { display: flex; justify-content: center; padding: 20px; }
         .mindara-container { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 90%; max-width: 1000px; }
         .mindara-heading { color: #3498db; text-align: center; margin-bottom: 30px; font-size: 24px; }
-        .chart-container { width: 100%; height: 400px; margin-bottom: 40px; background-color: #fff; padding:10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
+        .chart-container { width: 100%; height: 400px; margin-bottom: 40px; background-color: #fff; padding:20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05), position : relative, overflow : visible;}
         #vector3d-container { width: 100%; height: 450px; margin-top: 20px; margin-bottom:20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative; /* Untuk positioning canvas */}
         .controls { text-align: center; margin-bottom: 20px; }
         .controls button { padding: 10px 15px; margin: 0 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
@@ -260,7 +260,7 @@ if ($today_data) {
             <div id="vector3d-container"></div>
             
            <div class="legend">
-                <h3>Legenda Sumbu 3D (Skala 0-)</h3>
+                <h3>Legenda Sumbu 3D (Skala 0-30)</h3>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #2ecc71;"></div> <span>Sumbu X: Stres Keuangan (Nilai: <?= number_format($vector_data['keuangan'], 2) ?>)</span>
                 </div>
@@ -389,7 +389,7 @@ if ($today_data) {
                     scales: {
                         y: { 
                             beginAtZero: true,
-                            max: 100,
+                            max: 200,
                             title: { display: true, text: 'Skor Stres (0-100)', font: {size: 14} }
                         },
                         x: {
