@@ -163,6 +163,39 @@ if ($user_id && $_SERVER["REQUEST_METHOD"] != "POST") {
     $stmt_stress->close();
 }
 
+// QUERY untuk grafik garis 7 hari terakhir
+$dates = [];
+$totals = [];
+
+if ($user_id) {
+    $sql_7days = "SELECT DATE(created_at) as date, SUM(total) as total
+                  FROM hasil_tes
+                  WHERE user_id = ?
+                  AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+                  GROUP BY DATE(created_at)
+                  ORDER BY date ASC";
+    $stmt_7days = mysqli_prepare($conn, $sql_7days);
+    mysqli_stmt_bind_param($stmt_7days, "i", $user_id);
+    mysqli_stmt_execute($stmt_7days);
+    $result_7days = mysqli_stmt_get_result($stmt_7days);
+
+    // Inisialisasi dengan data default untuk 7 hari terakhir
+    for ($i = 6; $i >= 0; $i--) {
+        $date = date('d M', strtotime("-$i days"));
+        $dates[] = $date;
+        $totals[] = 0; // Nilai default
+    }
+
+    // Isi dengan data dari database
+    while ($row = mysqli_fetch_assoc($result_7days)) {
+        $date_index = array_search(date('d M', strtotime($row['date'])), $dates);
+        if ($date_index !== false) {
+            $totals[$date_index] = $row['total'];
+        }
+    }
+    mysqli_stmt_close($stmt_7days);
+}
+
 $conn->close();
 ?>
 
@@ -174,6 +207,7 @@ $conn->close();
   <title>Beranda</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -356,6 +390,42 @@ $conn->close();
             margin-left: 10px;
         }
 
+        /* Tambahan untuk chart */
+        .chart-section {
+            margin-top: 40px;
+            margin-bottom: 30px;
+            border-top: 1px solid #eaeaea;
+            padding-top: 30px;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: visible;
+        }
+        
+        .chart-title {
+            color: #002B45;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .no-data-message {
+            color: #6c5ce7;
+            font-style: italic;
+            padding: 15px;
+            text-align: center;
+            background-color: #f0f0f8;
+            border-radius: 8px;
+        }
+
     </style>
     
 </head>
@@ -459,21 +529,27 @@ $conn->close();
                     <textarea id="bio" name="bio" placeholder="Ceritakan sedikit tentang diri Anda..."><?php echo htmlspecialchars($bio); ?></textarea>
                 </div>
                 
-                
                 <div class="button-group">
                     <a href="beranda.php" class="secondary-button" style="text-decoration: none; text-align: center;">Batal</a>
                     <button type="submit">Simpan Perubahan</button>
                 </div>
             </form>
+            
+            <!-- Chart Section yang dipindahkan ke bagian bawah profil -->
+            <div class="chart-section">
+                <h3 class="chart-title">Perkembangan Tingkat Stres (7 Hari Terakhir)</h3>
+                <?php if ($user_id && !empty($totals) && array_sum($totals) > 0): ?>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <?php else: ?>
+                <p class="no-data-message">Data tidak cukup untuk menampilkan grafik stres. Silakan <a href="analisis.php">lakukan tes</a> terlebih dahulu.</p>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
     
     <script>
-        // Update the progress bar when the stress level slider changes
-        document.getElementById('stress_level').addEventListener('input', function() {
-            document.querySelector('.progress-bar').style.width = (this.value * 10) + '%';
-        });
-        
         // Preview uploaded image before submission
         document.getElementById('profile_pic').addEventListener('change', function() {
             const file = this.files[0];
@@ -486,14 +562,56 @@ $conn->close();
             }
         });
 
-            document.getElementById('stress_level').addEventListener('input', function() {
-        // Update progress bar width
-        document.querySelector('.progress-bar').style.width = (this.value * 10) + '%';
-        
-        // Update stress percentage display
-        document.getElementById('stress_percentage').textContent = this.value * 10 + '%';
-    });
-
+        // Chart setup
+        document.addEventListener('DOMContentLoaded', function() {
+            const trendCtx = document.getElementById('trendChart');
+            if (trendCtx) {
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: <?php echo json_encode($dates); ?>,
+                        datasets: [{
+                            label: 'Skor Stres',
+                            data: <?php echo json_encode($totals); ?>,
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',  // Lebih transparan
+                            borderColor: '#3498db',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#3498db',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 7,
+                            pointHoverBackgroundColor: '#2980b9'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true,
+                                max: 150,
+                                title: { display: true, text: 'Skor Stres (0-100)', font: {size: 12} },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'  // Grid lines lebih transparan
+                                }
+                            },
+                            x: {
+                                title: { display: true, text: 'Tanggal', font: {size: 12} },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'  // Grid lines lebih transparan
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
