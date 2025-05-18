@@ -66,12 +66,12 @@ $scores = array_reverse($scores);
 // Fungsi prediksi Moving Average + deret aritmatika
 function predictStress($scores) {
     $n = count($scores);
-    if ($n < 3) return array_fill(0, 7, end($scores));
+    if ($n < 3) return array_fill(0, 7, min(100, end($scores)));
     $predicted = [];
     for ($i = 0; $i < 7; $i++) {
         $last3 = array_slice($scores, -3);
         $avg = array_sum($last3) / count($last3);
-        $next = round($avg + $i);
+        $next = min(100, round($avg + $i));
         $predicted[] = $next;
         $scores[] = $next;
     }
