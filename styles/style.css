@@ -33,13 +33,12 @@ header.shadow {
 }
 
 .logo-img {
-  height: 30px;
+  width: 100px;
   object-fit: contain;
 }
 
 .logo {
   font-family: 'Playfair Display', serif;
-  font-size: 1.8rem;
   color: #7B0000;
 }
 nav a {
@@ -90,6 +89,13 @@ nav a:hover {
   flex: 1; /* Keep this as is */
   padding-right: 2rem; /* Reduced padding */
 }
+.button-group {
+  display: flex;
+  gap: 5px;
+  margin-top: 1.5rem;
+  flex-wrap: wrap; /* Biar responsif di layar kecil */
+}
+
 
 .hero-left .logo {
   width: 350px; /* Adjusted logo width */
@@ -134,8 +140,8 @@ nav a:hover {
 }
 
 .mulai-button {
-  background-color: #669BBC;
-  border-radius: 10px;
+  background-color: #7B0000;
+  border-radius: 5px;
   color: #ffffff;
   padding: 10px;
   width: 100%;
@@ -143,12 +149,36 @@ nav a:hover {
   border-radius: 0px;
   text-decoration: none;
   transition: background-color 0.3s ease;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  -ms-border-radius: 10px;
-  -o-border-radius: 10px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
 }
 
+.mulai-button:hover {
+  background-color: #C1121F;
+}
+
+.riwayat-button {
+  display: inline-block;
+  background-color: #669BBC;
+  border-radius: 5px;
+  color: #ffffff;
+  padding: 10px;
+  width: 100%;
+  padding: 0.5rem 2rem;
+  border-radius: 0px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+}
+
+.riwayat-button:hover {
+  background-color: #003049;
+}
 
 .canvas-grafik {
   background-color: #ffffff;

@@ -432,7 +432,7 @@ $conn->close();
 <body>
 <header id="navbar">
   <div class="logo">
-    <img src="images/mindara.png" alt="Mindara Logo" class="logo-img" />
+    <img src="images/logo.png" alt="Mindara Logo" class="logo-img" />
   </div>
   <nav>
     <a href="index.php">Beranda</a>

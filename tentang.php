@@ -13,7 +13,7 @@
 <body>
 <header id="navbar">
   <div class="logo">
-    <img src="images/logo-mindara.png" alt="Mindara Logo" class="logo-img" />
+    <img src="images/logo.png" alt="Mindara Logo" class="logo-img" />
   </div>
   <nav>
     <a href="index.php">Beranda</a>
@@ -180,7 +180,7 @@
       <img src="images/isma.jpeg" alt="isma">
       <div class="tim-info">
         <h3>Ismatul Ilmi</h3>
-        <p>247006111--</p>
+        <p>24700611137</p>
       </div>
     </div>
     <div class="tim-card">

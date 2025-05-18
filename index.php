@@ -2,7 +2,6 @@
   session_start();
 ?>
  
-<!-- https://chatgpt.com/c/67f72843-0058-8004-a142-9a44119f50a9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +14,7 @@
 <body>
 <header id="navbar">
   <div class="logo">
-    <img src="images/logo-mindara.png" alt="Mindara Logo" class="logo-img" />
+    <img src="images/logo.png" alt="Mindara Logo" class="logo-img" />
   </div>
   <nav>
     <a href="index.php">Beranda</a>
@@ -37,7 +36,13 @@
       <div class="hero-left">
         <img src="images/logo.png" alt="Mindara Logo" class="logo">
         <p>“A calm space where anyone can understand their emotions, check their stress levels, and start healing—one breath at a time”</p>
-        <a href="analisis.php" class="mulai-button">Mulai Sekarang</a>
+        <div class="button-group">
+          <a href="analisis.php" class="mulai-button">Mulai Sekarang</a>
+          <?php if (isset($_SESSION['user_name'])): ?>
+            <a href="grafik.php" class="riwayat-button">Lihat Riwayatmu</a>
+          <?php endif; ?>
+        </div>
+
       </div>
       <div class="hero-right">
         <div class="circle-bg"></div>
@@ -118,7 +123,7 @@
     <div class="cta-container">
       <h2>Ayo Mulai Kenali Dirimu</h2>
       <p>Cek tingkat stresmu sekarang dan dapatkan insight untuk langkah selanjutnya!</p>
-      <a href="pertanyaan.php" class="cta-button">Mulai Sekarang</a>
+      <a href="analisis.php" class="cta-button">Mulai Sekarang</a>
     </div>
   </section>
 

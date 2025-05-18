@@ -127,7 +127,7 @@ if ($today_data) {
 <html>
 <header id="navbar">
   <div class="logo">
-    <img src="images/logo-mindara.png" alt="Mindara Logo" class="logo-img" />
+    <img src="images/logo.png" alt="Mindara Logo" class="logo-img" />
   </div>
   <nav style="margin-right: 3rem;">
     <a href="index.php">Beranda</a>
@@ -194,7 +194,7 @@ if ($today_data) {
             }
 
             .logo-img {
-            height: 30px;
+            width: 100px;
             object-fit: contain;
             margin-left: 3rem;
             }
@@ -312,7 +312,6 @@ if ($today_data) {
                 </div>
             </div>
             
-            <canvas id="grafikTes" width="600" height="300"></canvas>
 
             <div class="rekomendasi-box">
                 <h3>
@@ -405,15 +404,32 @@ if ($today_data) {
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const trendCtx = document.getElementById('trendChart');
-        if (trendCtx) {
-            new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels: <?php echo json_encode($dates); ?>,
-                    datasets: [{
-                        label: 'Skor Stres Keseluruhan (7 Hari Terakhir)',
-                        data: <?php echo json_encode($totals); ?>,
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+        // Assuming dates and totals are defined in PHP
+        const labels = <?php echo json_encode($dates); ?>;
+        const dataAsli = <?php echo json_encode($totals); ?>;
+        const dataPrediksi = <?php echo json_encode($predicted); ?>;
+        
+        // Create future dates for prediction (7 days)
+        const futureDates = [];
+        for (let i = 1; i <= 7; i++) {
+            const today = new Date();
+            today.setDate(today.getDate() + i);
+            futureDates.push(today.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }));
+        }
+        
+        // Combine all dates
+        const allDates = [...labels, ...futureDates];
+        
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: allDates,
+                datasets: [
+                    {
+                        label: 'Skor Stres Keseluruhan',
+                        data: [...dataAsli, ...Array(7).fill(null)],
                         backgroundColor: 'rgba(52, 152, 219, 0.2)',
                         borderColor: '#3498db',
                         borderWidth: 2,
@@ -423,29 +439,68 @@ if ($today_data) {
                         pointBorderColor: '#fff',
                         pointHoverRadius: 7,
                         pointHoverBackgroundColor: '#2980b9'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { 
-                            beginAtZero: true,
-                            max: 100,
-                            title: { display: true, text: 'Skor Stres (0-100)', font: {size: 14} }
-                        },
-                        x: {
-                            title: { display: true, text: 'Tanggal', font: {size: 14} }
-                        }
                     },
-                    plugins: {
-                        legend: {
-                            labels: { font: { size: 14 } }
+                    {
+                        label: 'Prediksi Skor Stres',
+                        data: [...Array(dataAsli.length).fill(null), ...dataPrediksi],
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderColor: '#e74c3c',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#e74c3c',
+                        pointBorderColor: '#fff',
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#c0392b'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'Skor Stres (0-100)', font: {size: 14} }
+                    },
+                    x: {
+                        title: { display: true, text: 'Tanggal', font: {size: 14} }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { font: { size: 14 } }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Perkembangan & Prediksi Stres (7 Hari)',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                return 'Tanggal: ' + tooltipItems[0].label;
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
                         }
                     }
                 }
-            });
-        }
+            }
+        });
+    }
 
         <?php if (!empty($vector_data)): ?>
         const container = document.getElementById('vector3d-container');
@@ -639,58 +694,3 @@ if ($today_data) {
     </script>
 </body>
 </html>
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<canvas id="grafikTes" width="600" height="300"></canvas>
-<script>
-    const labels = <?php echo json_encode($dates); ?>;
-    const dataAsli = <?php echo json_encode($totals); ?>;
-    const dataPrediksi = <?php echo json_encode($predicted); ?>;
-
-    const data = {
-        labels: labels.concat(
-            [...Array(7).keys()].map(i => {
-                const today = new Date();
-                today.setDate(today.getDate() + i + 1);
-                return today.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-            })
-        ),
-        datasets: [
-            {
-                label: 'Skor Asli',
-                data: dataAsli.concat(Array(7).fill(null)),
-                borderColor: 'blue',
-                fill: false,
-                tension: 0.1
-            },
-            {
-                label: 'Prediksi',
-                data: Array(dataAsli.length).fill(null).concat(dataPrediksi),
-                borderColor: 'red',
-                borderDash: [5, 5],
-                fill: false,
-                tension: 0.1
-            }
-        ]
-    };
-
-    const config = {
-        type: 'line',
-        data: data,
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top'
-                },
-                title: {
-                    display: true,
-                    text: 'Grafik Skor Tes & Prediksi'
-                }
-            }
-        }
-    };
-
-    new Chart(document.getElementById('grafikTes'), config);
-</script>
