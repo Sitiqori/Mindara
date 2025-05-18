@@ -462,7 +462,7 @@ if ($today_data) {
                 scales: {
                     y: { 
                         beginAtZero: true,
-                        max: 100,
+                        max: 110,
                         title: { display: true, text: 'Skor Stres (0-100)', font: {size: 14} }
                     },
                     x: {
