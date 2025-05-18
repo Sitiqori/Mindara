@@ -70,8 +70,8 @@ function predictStress($scores) {
     $predicted = [];
     for ($i = 0; $i < 7; $i++) {
         $last3 = array_slice($scores, -3);
-        $avg = array_sum($last3) / count($last3);
-        $next = min(100, round($avg + $i));
+        $avg = array_sum($last3) / 3;
+        $next = min(100, round($avg));
         $predicted[] = $next;
         $scores[] = $next;
     }
