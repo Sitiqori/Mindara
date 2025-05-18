@@ -97,15 +97,11 @@ mysqli_stmt_close($stmt_today);
 // Siapkan data untuk grafik 3D
 $vector_data = null;
 if ($today_data) {
-    $stress_total_raw = $today_data['stress_total'];
-    $akademik_total_raw = $today_data['akademik_total'];
-    $keuangan_total_raw = $today_data['keuangan_total'];
+    // Gunakan nilai mentah (0-30) tanpa normalisasi ke 0-10
+    $stress_norm = $today_data['stress_total'];
+    $akademik_norm = $today_data['akademik_total'];
+    $keuangan_norm = $today_data['keuangan_total'];
     $normalized_score = $today_data['normalized_score'];
-
-    // Normalisasi ke skala 0-10
-    $stress_norm = ($stress_total_raw / 30) * 10;
-    $akademik_norm = ($akademik_total_raw / 30) * 10;
-    $keuangan_norm = ($keuangan_total_raw / 30) * 10;
 
     $magnitude = sqrt(pow($stress_norm, 2) + pow($akademik_norm, 2) + pow($keuangan_norm, 2));
 
@@ -300,15 +296,15 @@ if ($today_data) {
             <div id="vector3d-container"></div>
             
             <div class="legend">
-                <h3>Legenda Sumbu 3D (Skala 0-10)</h3>
+                <h3>Legenda Sumbu 3D (Skala 0-30)</h3>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #3498db;"></div> <span>Sumbu X: Stres Umum (Nilai: <?= number_format($vector_data['stress'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #2ecc71;"></div> <span>Sumbu X: Keuangan (Nilai: <?= number_format($vector_data['keuangan'], 2) ?>)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #e74c3c;"></div> <span>Sumbu Y: Tekanan Akademik (Nilai: <?= number_format($vector_data['akademik'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #3498db;"></div> <span>Sumbu Y: Stres Umum (Nilai: <?= number_format($vector_data['stress'], 2) ?>)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #2ecc71;"></div> <span>Sumbu Z: Stres Keuangan (Nilai: <?= number_format($vector_data['keuangan'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #e74c3c;"></div> <span>Sumbu Z: Tekanan Akademik (Nilai: <?= number_format($vector_data['akademik'], 2) ?>)</span>
                 </div>
             </div>
             
@@ -378,20 +374,20 @@ if ($today_data) {
                 <div class="vector-day-card">
                     <h4>Tanggal: <?= htmlspecialchars($vector_data['date']) ?></h4>
                     <p><strong>Skor Stres Keseluruhan (0-100):</strong> <?= round($vector_data['total']) ?></p>
-                    <p><strong>Besaran Vektor (Magnitude 0-10 komponen):</strong> <?= number_format($vector_data['magnitude'], 2) ?></p>
-                    <p><strong>Komponen Vektor (Skala 0-10):</strong></p>
+                    <p><strong>Besaran Vektor (Magnitude):</strong> <?= number_format($vector_data['magnitude'], 2) ?></p>
+                    <p><strong>Komponen Vektor (Skala 0-30):</strong></p>
                     <div class="vector-components">
                         <div class="vector-component">
-                            <span>X (Stres Umum):</span>
+                            <span>X (Stres Keuangan):</span>
                             <span><?= number_format($vector_data['x'], 2) ?></span>
                         </div>
                         <div class="vector-component">
-                            <span>Y (Tekanan Akademik):</span>
-                            <span><?= number_format($vector_data['y'], 2) ?></span>
+                            <span>Y (Stres Umum):</span>
+                            <span><?= number_format($vector_data['z'], 2) ?></span>
                         </div>
                         <div class="vector-component">
-                            <span>Z (Stres Keuangan):</span>
-                            <span><?= number_format($vector_data['z'], 2) ?></span>
+                            <span>Z (Tekanan Akademik):</span>
+                            <span><?= number_format($vector_data['y'], 2) ?></span>
                         </div>
                     </div>
                 </div>
@@ -509,7 +505,7 @@ if ($today_data) {
             scene.background = new THREE.Color(0xf0f2f5);
             
             const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(10, 10, 17); // Adjusted camera for better view with new axes
+            camera.position.set(15, 15, 25); // Posisi kamera disesuaikan
             
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
@@ -519,7 +515,7 @@ if ($today_data) {
             const controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.minDistance = 5;
+            controls.minDistance = 10;
             controls.maxDistance = 50;
             
             scene.add(new THREE.AmbientLight(0xffffff, 0.7));
@@ -527,34 +523,34 @@ if ($today_data) {
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
             
-            // === MEMBUAT SUMBU KOORDINAT YANG LEBIH TEBAL ===
-            const axisLength = 10;
-            const axisRadius = 0.06; // Ketebalan batang sumbu
-            const headRadius = 0.25;  // Radius dasar mata panah
-            const headHeight = 0.7;  // Tinggi mata panah
-            const segments = 12;     // Segmen untuk kehalusan silinder/kerucut
-
-            // Fungsi untuk membuat satu sumbu
+            // === PENYESUAIAN UKURAN SUMBU ===
+            const scaleFactor = 0.5; // Faktor skala untuk mengecilkan tampilan visual
+            const axisLength = 30 * scaleFactor; // Panjang sumbu visual (nilai sebenarnya tetap 30)
+            const axisRadius = 0.08; // Ketebalan sumbu
+            const headRadius = 0.3;  // Ukuran kepala panah
+            const headHeight = 0.8;  // Tinggi kepala panah
+            
+            // Fungsi pembuat sumbu
             function createAxis(axisParams) {
                 const { direction, color, name } = axisParams;
                 const group = new THREE.Group();
 
-                // Batang Sumbu (Silinder)
-                const cylinderGeom = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, segments);
+                // Batang sumbu
+                const cylinderGeom = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, 12);
                 const cylinderMat = new THREE.MeshBasicMaterial({ color: color });
                 const cylinder = new THREE.Mesh(cylinderGeom, cylinderMat);
                 
-                // Mata Panah (Kerucut)
-                const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, segments);
-                const cone = new THREE.Mesh(coneGeom, cylinderMat); // Gunakan material yang sama
+                // Kepala panah
+                const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, 12);
+                const cone = new THREE.Mesh(coneGeom, cylinderMat);
 
+                // Penyesuaian orientasi berdasarkan sumbu
                 if (name === 'x') {
                     cylinder.rotation.z = -Math.PI / 2;
                     cylinder.position.x = axisLength / 2;
                     cone.rotation.z = -Math.PI / 2;
                     cone.position.x = axisLength;
                 } else if (name === 'y') {
-                    // Silinder & kerucut sudah menghadap ke Y secara default
                     cylinder.position.y = axisLength / 2;
                     cone.position.y = axisLength;
                 } else if (name === 'z') {
@@ -563,97 +559,110 @@ if ($today_data) {
                     cone.rotation.x = Math.PI / 2;
                     cone.position.z = axisLength;
                 }
+                
                 group.add(cylinder);
                 group.add(cone);
                 scene.add(group);
             }
 
-            // Sumbu X (Biru - Stres Umum)
+            // Membuat ketiga sumbu
             createAxis({ direction: new THREE.Vector3(1, 0, 0), color: 0x3498db, name: 'x' });
-            // Sumbu Y (Merah - Tekanan Akademik)
             createAxis({ direction: new THREE.Vector3(0, 1, 0), color: 0xe74c3c, name: 'y' });
-            // Sumbu Z (Hijau - Stres Keuangan)
             createAxis({ direction: new THREE.Vector3(0, 0, 1), color: 0x2ecc71, name: 'z' });
             
-            // Grid Helper
-            const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xcccccc);
+            // Grid helper dengan ukuran yang proporsional
+            const gridSize = 60 * scaleFactor;
+            const gridDivisions = 10;
+            const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0xcccccc, 0xcccccc);
             scene.add(gridHelper);
             
+            // Data vektor dengan skala yang sama
             const vector = <?php echo json_encode($vector_data); ?>;
+            const vectorScale = 0.5 * scaleFactor; // Skala vektor disesuaikan
             
-            let arrowDirection, mainArrowLength; // Renamed arrowLength to mainArrowLength
-            const visualScale = 0.7; 
-
+            let arrowDirection, arrowLength;
             if (vector.magnitude === 0) {
-                arrowDirection = new THREE.Vector3(0, 0, 0); 
-                mainArrowLength = 0;
+                arrowDirection = new THREE.Vector3(0, 0, 0);
+                arrowLength = 0;
             } else {
                 arrowDirection = new THREE.Vector3(vector.x, vector.y, vector.z).normalize();
-                mainArrowLength = vector.magnitude * visualScale;
+                arrowLength = vector.magnitude * vectorScale;
             }
 
-            const arrowColor = 0x8e44ad; 
-            const mainHeadLength = mainArrowLength > 0 ? Math.max(0.5, mainArrowLength * 0.15) : 0; // Slightly larger head for main arrow
-            const mainHeadWidth = mainArrowLength > 0 ? Math.max(0.3, mainArrowLength * 0.1) : 0;  // Slightly larger head for main arrow
-
-            const mainArrowHelper = new THREE.ArrowHelper(
+            // Membuat panah vektor
+            const arrowHelper = new THREE.ArrowHelper(
                 arrowDirection,
-                new THREE.Vector3(0, 0, 0), 
-                mainArrowLength,
-                arrowColor, 
-                mainHeadLength,
-                mainHeadWidth 
+                new THREE.Vector3(0, 0, 0),
+                arrowLength,
+                0x8e44ad,
+                Math.max(0.5, arrowLength * 0.15),
+                Math.max(0.3, arrowLength * 0.1)
             );
-            scene.add(mainArrowHelper);
+            scene.add(arrowHelper);
 
+            // Membuat label sumbu
             function createAxisLabel(text, position, colorHex) {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                canvas.width = 200; canvas.height = 64; // Increased canvas size for clarity
-                context.font = 'Bold 20px Arial'; // Font size
-                context.fillStyle = '#' + colorHex.toString(16).padStart(6, '0'); // Convert hex number to string
+                canvas.width = 200; 
+                canvas.height = 64;
+                context.font = 'Bold 20px Arial';
+                context.fillStyle = '#' + colorHex.toString(16).padStart(6, '0');
                 context.textAlign = 'center';
                 context.textBaseline = 'middle';
                 context.fillText(text, canvas.width/2, canvas.height/2);
+                
                 const texture = new THREE.CanvasTexture(canvas);
-                const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
+                const spriteMaterial = new THREE.SpriteMaterial({ 
+                    map: texture, 
+                    depthTest: false, 
+                    transparent: true 
+                });
                 const sprite = new THREE.Sprite(spriteMaterial);
                 sprite.position.copy(position);
-                sprite.scale.set(3, 1.5, 1); // Scale of the sprite
+                sprite.scale.set(4, 2, 1);
                 return sprite;
             }
-            // Posisi label sedikit di luar sumbu
-            const labelOffset = 1.2;
-            scene.add(createAxisLabel('X: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
-            scene.add(createAxisLabel('Y: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
-            scene.add(createAxisLabel('Z: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
+            
+            // Menambahkan label sumbu
+            const labelOffset = 2;
+            scene.add(createAxisLabel('Y: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
+            scene.add(createAxisLabel('Z: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
+            scene.add(createAxisLabel('X: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
 
-
+            // Membuat label informasi vektor
             const labelCanvas = document.createElement('canvas');
             labelCanvas.width = 220; 
             labelCanvas.height = 110;
             const labelContext = labelCanvas.getContext('2d');
-            labelContext.fillStyle = 'rgba(40, 40, 40, 0.75)'; 
+            labelContext.fillStyle = 'rgba(40, 40, 40, 0.75)';
             labelContext.fillRect(0, 0, labelCanvas.width, labelCanvas.height);
             labelContext.font = 'Bold 18px Arial';
             labelContext.fillStyle = '#FFFFFF';
             labelContext.textAlign = 'center';
             labelContext.fillText(`Skor: ${vector.total.toFixed(0)}`, labelCanvas.width/2, 30);
             labelContext.font = '15px Arial';
-            labelContext.fillText(`Magnitude Vektor: ${vector.magnitude.toFixed(2)}`, labelCanvas.width/2, 60);
+            labelContext.fillText(`Magnitude: ${vector.magnitude.toFixed(2)}`, labelCanvas.width/2, 60);
             labelContext.fillText(`(X:${vector.x.toFixed(1)}, Y:${vector.y.toFixed(1)}, Z:${vector.z.toFixed(1)})`, labelCanvas.width/2, 90);
             
             const labelTexture = new THREE.CanvasTexture(labelCanvas);
-            const labelSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTexture, depthTest: false, transparent: true }));
+            const labelSprite = new THREE.Sprite(
+                new THREE.SpriteMaterial({ 
+                    map: labelTexture, 
+                    depthTest: false, 
+                    transparent: true 
+                })
+            );
             
-            if (mainArrowLength > 0) {
-                labelSprite.position.copy(arrowDirection).multiplyScalar(mainArrowLength).add(new THREE.Vector3(0, 0.7, 0)); 
+            if (arrowLength > 0) {
+                labelSprite.position.copy(arrowDirection).multiplyScalar(arrowLength).add(new THREE.Vector3(0, 0.7, 0));
             } else {
-                labelSprite.position.set(0, 0.7, 0); 
+                labelSprite.position.set(0, 0.7, 0);
             }
-            labelSprite.scale.set(3.5, 1.75, 1); 
+            labelSprite.scale.set(4, 2, 1);
             scene.add(labelSprite);
             
+            // Kontrol rotasi otomatis
             let autoRotate = false;
             const rotateButton = document.getElementById('rotateToggle');
             if (rotateButton) {
@@ -663,26 +672,29 @@ if ($today_data) {
                 });
             }
             
+            // Tombol reset view
             const resetButton = document.getElementById('resetView');
             if (resetButton) {
                 resetButton.addEventListener('click', () => {
                     controls.reset();
-                    camera.position.set(10, 10, 17); 
-                    autoRotate = false; 
-                     if(rotateButton) rotateButton.textContent = 'Aktifkan Rotasi Otomatis';
+                    camera.position.set(15, 15, 25);
+                    autoRotate = false;
+                    if (rotateButton) rotateButton.textContent = 'Aktifkan Rotasi Otomatis';
                 });
             }
             
+            // Animasi
             function animate() {
                 requestAnimationFrame(animate);
-                if (autoRotate && mainArrowLength > 0) { 
-                    scene.rotation.y += 0.003; 
+                if (autoRotate && arrowLength > 0) {
+                    scene.rotation.y += 0.003;
                 }
                 controls.update();
                 renderer.render(scene, camera);
             }
             animate();
             
+            // Handle resize
             window.addEventListener('resize', () => {
                 camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();
