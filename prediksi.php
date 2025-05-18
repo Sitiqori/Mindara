@@ -1,3 +1,5 @@
+prediksi.php :
+
 <?php
 session_start();
 require 'config.php';
@@ -62,8 +64,10 @@ function predictStress($scores) {
     }
     
     // 5. Konversi MA prediksi -> skor prediksi
+    // Asumsi: skor = MA + random variation (opsional)
     $predictedScores = [];
     foreach ($predictedMA as $ma) {
+        // Tambahkan sedikit variasi acak (±5) untuk simulasi fluktuasi alami
         $variation = rand(-5, 5);
         $score = $ma + $variation;
         $score = max(0, min(100, round($score)));
@@ -122,33 +126,6 @@ $chartData = [
         .low { color: #00b894; }
         .medium { color: #fdcb6e; }
         .high { color: #e17055; }
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        .nav-btn {
-            padding: 12px 25px;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-grafik {
-            background: #6c757d;
-        }
-        .btn-beranda {
-            background: #4a6baf;
-        }
-        .nav-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
     </style>
 </head>
 <body>
@@ -183,12 +160,6 @@ $chartData = [
                             </div>
                         </div>
                     <?php endforeach; ?>
-                </div>
-                
-                <!-- Tombol Navigasi -->
-                <div class="nav-buttons">
-                    <a href="grafik.php" class="nav-btn btn-grafik">Lihat Grafik Skor</a>
-                    <a href="index.php" class="nav-btn btn-beranda">Kembali ke Beranda</a>
                 </div>
                 
                 <!-- Script Chart -->
@@ -231,4 +202,4 @@ $chartData = [
         </div>
     </div>
 </body>
-</html>
+</html> 

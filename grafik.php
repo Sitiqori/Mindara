@@ -9,38 +9,78 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// QUERY 1: Untuk Grafik Garis (7 Hari Terakhir)
-$sql_7days = "SELECT DATE(created_at) as date, SUM(total) as total
+// QUERY untuk Grafik Garis (7 Hari Terakhir) - DIREVISI
+$sql_7days = "SELECT DATE(created_at) as date, normalized_score 
               FROM hasil_tes
               WHERE user_id = ?
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
-              GROUP BY DATE(created_at)
               ORDER BY date ASC";
 $stmt_7days = mysqli_prepare($conn, $sql_7days);
 mysqli_stmt_bind_param($stmt_7days, "i", $user_id);
 mysqli_stmt_execute($stmt_7days);
 $result_7days = mysqli_stmt_get_result($stmt_7days);
 
+// Inisialisasi array untuk data grafik
 $dates = [];
 $totals = [];
+$raw_data = [];
 
-// Inisialisasi dengan data default untuk 7 hari terakhir
-for ($i = 6; $i >= 0; $i--) {
-    $date = date('d M', strtotime("-$i days"));
-    $dates[] = $date;
-    $totals[] = 0; // Nilai default
+// Simpan data mentah dari database
+while ($row = mysqli_fetch_assoc($result_7days)) {
+    $raw_data[$row['date']] = $row['normalized_score'];
 }
 
-// Isi dengan data dari database
-while ($row = mysqli_fetch_assoc($result_7days)) {
-    $date_index = array_search(date('d M', strtotime($row['date'])), $dates);
-    if ($date_index !== false) {
-        $totals[$date_index] = $row['total'];
+// Buat data untuk 7 hari terakhir
+for ($i = 6; $i >= 0; $i--) {
+    $date_ymd = date('Y-m-d', strtotime("-$i days"));
+    $date_display = date('d M', strtotime("-$i days"));
+    
+    $dates[] = $date_display;
+    
+    // Jika ada data untuk tanggal ini, gunakan nilai dari database
+    if (isset($raw_data[$date_ymd])) {
+        $totals[] = (int)$raw_data[$date_ymd];
+    } else {
+        // Jika tidak ada data, gunakan nilai 0 atau null
+        $totals[] = 0; // Atau bisa juga null jika ingin menampilkan grafik yang terputus
     }
 }
-mysqli_stmt_close($stmt_7days);
 
-// QUERY 2: Untuk Grafik 3D (Hari Ini Saja)
+// Ambil data historis untuk prediksi
+$query = "SELECT DATE(created_at) as tanggal, total FROM hasil_tes 
+          WHERE user_id = '$user_id' 
+          ORDER BY created_at DESC 
+          LIMIT 7";
+$result = mysqli_query($conn, $query);
+
+$historicalData = [];
+$scores = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $historicalData[] = $row;
+    $scores[] = (int)$row['total'];
+}
+
+// Balik urutan agar terlama pertama
+$scores = array_reverse($scores);
+
+// Fungsi prediksi Moving Average + deret aritmatika
+function predictStress($scores) {
+    $n = count($scores);
+    if ($n < 3) return array_fill(0, 7, end($scores));
+    $predicted = [];
+    for ($i = 0; $i < 7; $i++) {
+        $last3 = array_slice($scores, -3);
+        $avg = array_sum($last3) / count($last3);
+        $next = round($avg + $i);
+        $predicted[] = $next;
+        $scores[] = $next;
+    }
+    return $predicted;
+}
+
+$predicted = predictStress($scores);
+
+// QUERY untuk Grafik 3D (Hari Ini Saja)
 $sql_today = "SELECT stress_total, akademik_total, keuangan_total, normalized_score, created_at
               FROM hasil_tes
               WHERE user_id = ?
@@ -62,12 +102,11 @@ if ($today_data) {
     $keuangan_total_raw = $today_data['keuangan_total'];
     $normalized_score = $today_data['normalized_score'];
 
-    // Hapus normalisasi, gunakan nilai asli (0-30)
-    $stress_norm = $stress_total_raw;
-    $akademik_norm = $akademik_total_raw;
-    $keuangan_norm = $keuangan_total_raw;
+    // Normalisasi ke skala 0-10
+    $stress_norm = ($stress_total_raw / 30) * 10;
+    $akademik_norm = ($akademik_total_raw / 30) * 10;
+    $keuangan_norm = ($keuangan_total_raw / 30) * 10;
 
-    // Hitung magnitude dari vektor skala 0-30
     $magnitude = sqrt(pow($stress_norm, 2) + pow($akademik_norm, 2) + pow($keuangan_norm, 2));
 
     $vector_data = [
@@ -113,7 +152,7 @@ if ($today_data) {
         .mindara-wrapper { display: flex; justify-content: center; padding: 20px; }
         .mindara-container { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 90%; max-width: 1000px; }
         .mindara-heading { color: #3498db; text-align: center; margin-bottom: 30px; font-size: 24px; }
-        .chart-container { width: 100%; height: 400px; margin-bottom: 40px; background-color: #fff; padding:20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05), position : relative, overflow : visible;}
+        .chart-container { width: 100%; height: 400px; margin-bottom: 40px; background-color: #fff; padding:10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
         #vector3d-container { width: 100%; height: 450px; margin-top: 20px; margin-bottom:20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative; /* Untuk positioning canvas */}
         .controls { text-align: center; margin-bottom: 20px; }
         .controls button { padding: 10px 15px; margin: 0 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
@@ -242,6 +281,7 @@ if ($today_data) {
 
     </style>
 </head>
+
 <body style="margin-top: 7rem;">
     <div class="mindara-wrapper">
         <div class="mindara-container">
@@ -259,19 +299,21 @@ if ($today_data) {
             </div>
             <div id="vector3d-container"></div>
             
-           <div class="legend">
-                <h3>Legenda Sumbu 3D (Skala 0-30)</h3>
+            <div class="legend">
+                <h3>Legenda Sumbu 3D (Skala 0-10)</h3>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #2ecc71;"></div> <span>Sumbu X: Stres Keuangan (Nilai: <?= number_format($vector_data['keuangan'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #3498db;"></div> <span>Sumbu X: Stres Umum (Nilai: <?= number_format($vector_data['stress'], 2) ?>)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #3498db;"></div> <span>Sumbu Y: Stres Umum (Nilai: <?= number_format($vector_data['stress'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #e74c3c;"></div> <span>Sumbu Y: Tekanan Akademik (Nilai: <?= number_format($vector_data['akademik'], 2) ?>)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #e74c3c;"></div> <span>Sumbu Z: Tekanan Akademik (Nilai: <?= number_format($vector_data['akademik'], 2) ?>)</span>
+                    <div class="legend-color" style="background-color: #2ecc71;"></div> <span>Sumbu Z: Stres Keuangan (Nilai: <?= number_format($vector_data['keuangan'], 2) ?>)</span>
                 </div>
             </div>
             
+            <canvas id="grafikTes" width="600" height="300"></canvas>
+
             <div class="rekomendasi-box">
                 <h3>
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -331,25 +373,25 @@ if ($today_data) {
                     ?>
                 </ul>
             </div>
-            
+
             <div class="vector-info">
                 <h3>Detail Vektor Stres Harian</h3>
                 <div class="vector-day-card">
                     <h4>Tanggal: <?= htmlspecialchars($vector_data['date']) ?></h4>
                     <p><strong>Skor Stres Keseluruhan (0-100):</strong> <?= round($vector_data['total']) ?></p>
-                    <p><strong>Besaran Vektor :</strong> <?= number_format($vector_data['magnitude'], 2) ?></p>
-                    <p><strong>Komponen Vektor (Skala 0-30):</strong></p>
+                    <p><strong>Besaran Vektor (Magnitude 0-10 komponen):</strong> <?= number_format($vector_data['magnitude'], 2) ?></p>
+                    <p><strong>Komponen Vektor (Skala 0-10):</strong></p>
                     <div class="vector-components">
                         <div class="vector-component">
-                            <span>X (Stres Keuangan):</span>
+                            <span>X (Stres Umum):</span>
                             <span><?= number_format($vector_data['x'], 2) ?></span>
                         </div>
                         <div class="vector-component">
-                            <span>Y (Stres Umum):</span>
+                            <span>Y (Tekanan Akademik):</span>
                             <span><?= number_format($vector_data['y'], 2) ?></span>
                         </div>
                         <div class="vector-component">
-                            <span>Z (Tekanan Akademik):</span>
+                            <span>Z (Stres Keuangan):</span>
                             <span><?= number_format($vector_data['z'], 2) ?></span>
                         </div>
                     </div>
@@ -389,7 +431,7 @@ if ($today_data) {
                     scales: {
                         y: { 
                             beginAtZero: true,
-                            max: 200,
+                            max: 100,
                             title: { display: true, text: 'Skor Stres (0-100)', font: {size: 14} }
                         },
                         x: {
@@ -430,43 +472,41 @@ if ($today_data) {
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
             
-            // === MEMBUAT SUMBU KOORDINAT YANG SAMA DENGAN PANAH UTAMA ===
-            const vector = <?php echo json_encode($vector_data); ?>;
-            const visualScale = 0.7;
-            const mainArrowLength = vector.magnitude * visualScale;
-            
-            
+            // === MEMBUAT SUMBU KOORDINAT YANG LEBIH TEBAL ===
+            const axisLength = 10;
+            const axisRadius = 0.06; // Ketebalan batang sumbu
+            const headRadius = 0.25;  // Radius dasar mata panah
+            const headHeight = 0.7;  // Tinggi mata panah
+            const segments = 12;     // Segmen untuk kehalusan silinder/kerucut
+
             // Fungsi untuk membuat satu sumbu
             function createAxis(axisParams) {
                 const { direction, color, name } = axisParams;
                 const group = new THREE.Group();
 
-                // Batang Sumbu (Silinder) - sama dengan panah utama
-                const cylinderRadius = 0.1; // Dipertebal untuk menyesuaikan dengan panah utama
-                const cylinderGeom = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, mainArrowLength, 12);
+                // Batang Sumbu (Silinder)
+                const cylinderGeom = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, segments);
                 const cylinderMat = new THREE.MeshBasicMaterial({ color: color });
                 const cylinder = new THREE.Mesh(cylinderGeom, cylinderMat);
                 
-                // Mata Panah (Kerucut) - sama dengan panah utama
-                const headRadius = 0.3;  // Radius dasar mata panah
-                const headHeight = 0.7;  // Tinggi mata panah
-                const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, 12);
-                const cone = new THREE.Mesh(coneGeom, cylinderMat);
+                // Mata Panah (Kerucut)
+                const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, segments);
+                const cone = new THREE.Mesh(coneGeom, cylinderMat); // Gunakan material yang sama
 
                 if (name === 'x') {
                     cylinder.rotation.z = -Math.PI / 2;
-                    cylinder.position.x = mainArrowLength / 2;
+                    cylinder.position.x = axisLength / 2;
                     cone.rotation.z = -Math.PI / 2;
-                    cone.position.x = mainArrowLength;
+                    cone.position.x = axisLength;
                 } else if (name === 'y') {
                     // Silinder & kerucut sudah menghadap ke Y secara default
-                    cylinder.position.y = mainArrowLength / 2;
-                    cone.position.y = mainArrowLength;
+                    cylinder.position.y = axisLength / 2;
+                    cone.position.y = axisLength;
                 } else if (name === 'z') {
                     cylinder.rotation.x = Math.PI / 2;
-                    cylinder.position.z = mainArrowLength / 2;
+                    cylinder.position.z = axisLength / 2;
                     cone.rotation.x = Math.PI / 2;
-                    cone.position.z = mainArrowLength;
+                    cone.position.z = axisLength;
                 }
                 group.add(cylinder);
                 group.add(cone);
@@ -480,36 +520,26 @@ if ($today_data) {
             // Sumbu Z (Hijau - Stres Keuangan)
             createAxis({ direction: new THREE.Vector3(0, 0, 1), color: 0x2ecc71, name: 'z' });
             
-            // Grid Helper - disesuaikan dengan panjang sumbu
-            // Set grid size based on axis length (mainArrowLength)
-            const gridSize = mainArrowLength * 2;  // Grid will be twice as big as the axes
-            const gridDivisions = Math.ceil(mainArrowLength); // Number of divisions matches axis length
-
-            // Create grid helper with calculated size
-            const gridHelper = new THREE.GridHelper(
-                gridSize, 
-                gridDivisions, 
-                0xcccccc,  // Center line color
-                0xcccccc   // Grid line color
-            );
-
-            // Position grid at the base (y = 0)
-            gridHelper.position.y = 0;
-           
-
-scene.add(gridHelper);
+            // Grid Helper
+            const gridHelper = new THREE.GridHelper(20, 20, 0xcccccc, 0xcccccc);
             scene.add(gridHelper);
             
-            let arrowDirection;
+            const vector = <?php echo json_encode($vector_data); ?>;
+            
+            let arrowDirection, mainArrowLength; // Renamed arrowLength to mainArrowLength
+            const visualScale = 0.7; 
+
             if (vector.magnitude === 0) {
                 arrowDirection = new THREE.Vector3(0, 0, 0); 
+                mainArrowLength = 0;
             } else {
                 arrowDirection = new THREE.Vector3(vector.x, vector.y, vector.z).normalize();
+                mainArrowLength = vector.magnitude * visualScale;
             }
 
             const arrowColor = 0x8e44ad; 
-            const mainHeadLength = mainArrowLength > 0 ? Math.max(0.5, mainArrowLength * 0.15) : 0;
-            const mainHeadWidth = mainArrowLength > 0 ? Math.max(0.3, mainArrowLength * 0.1) : 0;
+            const mainHeadLength = mainArrowLength > 0 ? Math.max(0.5, mainArrowLength * 0.15) : 0; // Slightly larger head for main arrow
+            const mainHeadWidth = mainArrowLength > 0 ? Math.max(0.3, mainArrowLength * 0.1) : 0;  // Slightly larger head for main arrow
 
             const mainArrowHelper = new THREE.ArrowHelper(
                 arrowDirection,
@@ -524,9 +554,9 @@ scene.add(gridHelper);
             function createAxisLabel(text, position, colorHex) {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                canvas.width = 200; canvas.height = 64;
-                context.font = 'Bold 20px Arial';
-                context.fillStyle = '#' + colorHex.toString(16).padStart(6, '0');
+                canvas.width = 200; canvas.height = 64; // Increased canvas size for clarity
+                context.font = 'Bold 20px Arial'; // Font size
+                context.fillStyle = '#' + colorHex.toString(16).padStart(6, '0'); // Convert hex number to string
                 context.textAlign = 'center';
                 context.textBaseline = 'middle';
                 context.fillText(text, canvas.width/2, canvas.height/2);
@@ -534,15 +564,15 @@ scene.add(gridHelper);
                 const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
                 const sprite = new THREE.Sprite(spriteMaterial);
                 sprite.position.copy(position);
-                sprite.scale.set(3, 1.5, 1);
+                sprite.scale.set(3, 1.5, 1); // Scale of the sprite
                 return sprite;
             }
-            
             // Posisi label sedikit di luar sumbu
             const labelOffset = 1.2;
-            scene.add(createAxisLabel('Y: Stres', new THREE.Vector3(mainArrowLength + labelOffset, 0, 0), 0x3498db));
-            scene.add(createAxisLabel('Z: Akademik', new THREE.Vector3(0, mainArrowLength + labelOffset, 0), 0xe74c3c));
-            scene.add(createAxisLabel('X: Keuangan', new THREE.Vector3(0, 0, mainArrowLength + labelOffset), 0x2ecc71));
+            scene.add(createAxisLabel('X: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
+            scene.add(createAxisLabel('Y: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
+            scene.add(createAxisLabel('Z: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
+
 
             const labelCanvas = document.createElement('canvas');
             labelCanvas.width = 220; 
@@ -609,3 +639,58 @@ scene.add(gridHelper);
     </script>
 </body>
 </html>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<canvas id="grafikTes" width="600" height="300"></canvas>
+<script>
+    const labels = <?php echo json_encode($dates); ?>;
+    const dataAsli = <?php echo json_encode($totals); ?>;
+    const dataPrediksi = <?php echo json_encode($predicted); ?>;
+
+    const data = {
+        labels: labels.concat(
+            [...Array(7).keys()].map(i => {
+                const today = new Date();
+                today.setDate(today.getDate() + i + 1);
+                return today.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+            })
+        ),
+        datasets: [
+            {
+                label: 'Skor Asli',
+                data: dataAsli.concat(Array(7).fill(null)),
+                borderColor: 'blue',
+                fill: false,
+                tension: 0.1
+            },
+            {
+                label: 'Prediksi',
+                data: Array(dataAsli.length).fill(null).concat(dataPrediksi),
+                borderColor: 'red',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.1
+            }
+        ]
+    };
+
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Grafik Skor Tes & Prediksi'
+                }
+            }
+        }
+    };
+
+    new Chart(document.getElementById('grafikTes'), config);
+</script>

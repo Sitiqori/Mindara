@@ -2,7 +2,7 @@
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "mindara1"; 
+$db   = "mindara"; 
 
 // Koneksi ke MySQL
 $conn = mysqli_connect($host, $user, $pass, $db);
