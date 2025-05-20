@@ -368,7 +368,6 @@ if ($today_data) {
                 </ul>
             </div>
 
-            
             <?php else: ?>
             <p class="no-data-message">Belum ada data tes untuk hari ini. Silakan <a href="analisis.php">lakukan tes</a> terlebih dahulu untuk melihat visualisasi 3D dan rekomendasi.</p>
             <?php endif; ?>
