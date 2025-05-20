@@ -1,42 +1,36 @@
 <?php
-// Start session to maintain user data
 session_start();
-require 'config.php'; // Biar connect ke database
+require 'config.php'; 
 
-// Initialize variables
+
 $fullname = $email = $phone = $birthdate = $gender = $bio = $preferences = "";
 $fullname_err = $email_err = $phone_err = $birthdate_err = $gender_err = $bio_err = $preferences_err = "";
 $success_message = "";
 $error_message = "";
 
-// Get current user ID from session (adjust according to your authentication system)
+
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 
-// Process form data when form is submitted
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
-    // Validate fullname
+
     if (empty(trim($_POST["fullname"]))) {
         $fullname_err = "Silakan masukkan nama lengkap Anda.";
     } else {
         $fullname = trim($_POST["fullname"]);
     }
-    
-    // Validate email
+
     if (empty(trim($_POST["email"]))) {
         $email_err = "Silakan masukkan email Anda.";
     } else {
-        // Check if email is valid
         if (!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
             $email_err = "Format email tidak valid.";
         } else {
             $email = trim($_POST["email"]);
         }
     }
-    
-    // Validate phone (optional)
+
     if (!empty(trim($_POST["phone"]))) {
-        // Basic Indonesian phone number validation
         if (!preg_match("/^[0-9]{10,13}$/", trim($_POST["phone"]))) {
             $phone_err = "Nomor telepon harus berisi 10-13 digit angka.";
         } else {
@@ -46,35 +40,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $phone = NULL;
     }
     
-    // Validate birthdate (optional)
+
     if (!empty(trim($_POST["birthdate"]))) {
         $birthdate = trim($_POST["birthdate"]);
     } else {
         $birthdate = NULL;
     }
     
-    // Validate gender (optional)
+
     if (!empty(trim($_POST["gender"]))) {
         $gender = trim($_POST["gender"]);
     } else {
         $gender = NULL;
     }
     
-    // Bio is optional
+
     $bio = trim($_POST["bio"]);
     
-    // Preferences is optional but defaulted
+    
     $preferences = !empty($_POST["preferences"]) ? trim($_POST["preferences"]) : "all";
     
-    // Check if no errors, then update profile
+
     if (empty($fullname_err) && empty($email_err) && empty($phone_err) && empty($birthdate_err)) {
         
-        // Handle profile picture upload
+
         $profile_pic_path = NULL;
         if (isset($_FILES["profile_pic"]) && $_FILES["profile_pic"]["error"] == 0) {
             $target_dir = "uploads/profile_pics/";
             
-            // Create directory if it doesn't exist
+
             if (!file_exists($target_dir)) {
                 mkdir($target_dir, 0777, true);
             }
@@ -83,10 +77,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $new_filename = "user_" . $user_id . "_" . time() . "." . $file_extension;
             $target_file = $target_dir . $new_filename;
             
-            // Check file type
+
             $allowed_types = array("jpg", "jpeg", "png", "gif");
             if (in_array($file_extension, $allowed_types)) {
-                // Upload file
+
                 if (move_uploaded_file($_FILES["profile_pic"]["tmp_name"], $target_file)) {
                     $profile_pic_path = $target_file;
                 } else {
@@ -97,11 +91,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
         
-        // Prepare an UPDATE statement
+
         $sql = "UPDATE users SET nama = ?, email = ?, phone = ?, birthdate = ?, gender = ?, bio = ?, notification_preferences = ?";
         $params = array($fullname, $email, $phone, $birthdate, $gender, $bio, $preferences);
-        
-        // Add profile_pic to update if one was uploaded
+
         if ($profile_pic_path) {
             $sql .= ", profile_pic = ?";
             $params[] = $profile_pic_path;
@@ -110,24 +103,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $sql .= " WHERE id = ?";
         $params[] = $user_id;
         
-        // Prepare statement
+
         $stmt = $conn->prepare($sql);
         if (!$stmt) {
             $error_message = "Terjadi kesalahan: " . $conn->error;
         } else {
-            // Create the appropriate bind_param arguments
+
             $types = str_repeat("s", count($params));
             $stmt->bind_param($types, ...$params);
-            
-            // Execute the prepared statement
+
             if ($stmt->execute()) {
                 $success_message = "Profil berhasil diperbarui!";
-                
-                // Record the stress level if provided
+
                 if (isset($_POST["stress_level"]) && is_numeric($_POST["stress_level"])) {
                     $stress_level = $_POST["stress_level"];
-                
-                    // Validasi agar tingkat stres berada di antara 0 dan 10
+
                     if ($stress_level >= 0 && $stress_level <= 10) {
                         $stmt_stress = $conn->prepare("INSERT INTO hasil_tes (user_id, total, created_at) VALUES (?, ?, NOW())");
                         $stmt_stress->bind_param("ii", $user_id, $stress_level);
@@ -141,10 +131,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
             }
-    // If there are errors or after successful update, the form will be shown again with feedback
+
             }
         }
-// Fetch user data if form not submitted
+
 if ($user_id && $_SERVER["REQUEST_METHOD"] != "POST") {
     $sql = "SELECT nama, email, phone, birthdate, gender, bio, notification_preferences, profile_pic FROM users WHERE id = ?";
     $stmt = $conn->prepare($sql);
@@ -153,8 +143,9 @@ if ($user_id && $_SERVER["REQUEST_METHOD"] != "POST") {
     $stmt->bind_result($fullname, $email, $phone, $birthdate, $gender, $bio, $preferences, $profile_pic);
     $stmt->fetch();
     $stmt->close();
+   
     
-    // Get latest stress level
+
     $stmt_stress = $conn->prepare("SELECT tingkat_stres, tanggal FROM hasil_stres WHERE user_id = ? ORDER BY tanggal DESC LIMIT 1");
     $stmt_stress->bind_param("i", $user_id);
     $stmt_stress->execute();
@@ -163,10 +154,10 @@ if ($user_id && $_SERVER["REQUEST_METHOD"] != "POST") {
     $stmt_stress->close();
 }
 
-// QUERY untuk grafik garis 7 hari terakhir - DIREVISI untuk prediksi
+
 $dates = [];
 $totals = [];
-$normalizedScores = []; // Untuk menyimpan skor normalisasi
+$normalizedScores = []; 
 
 if ($user_id) {
     $sql_7days = "SELECT DATE(created_at) as date, total, normalized_score 
@@ -179,25 +170,24 @@ if ($user_id) {
     mysqli_stmt_execute($stmt_7days);
     $result_7days = mysqli_stmt_get_result($stmt_7days);
 
-    // Simpan data mentah dari database
+
     $raw_data = [];
     while ($row = mysqli_fetch_assoc($result_7days)) {
         $raw_data[$row['date']] = $row;
     }
 
-    // Buat data untuk 7 hari terakhir
+
     for ($i = 6; $i >= 0; $i--) {
         $date_ymd = date('Y-m-d', strtotime("-$i days"));
         $date_display = date('d M', strtotime("-$i days"));
         
         $dates[] = $date_display;
-        
-        // Jika ada data untuk tanggal ini, gunakan nilai dari database
+
         if (isset($raw_data[$date_ymd])) {
             $totals[] = (int)$raw_data[$date_ymd]['total'];
             $normalizedScores[] = (int)$raw_data[$date_ymd]['normalized_score'];
         } else {
-            // Jika tidak ada data, gunakan nilai null
+
             $totals[] = null;
             $normalizedScores[] = null;
         }
@@ -205,19 +195,19 @@ if ($user_id) {
     mysqli_stmt_close($stmt_7days);
 }
 
-// Fungsi prediksi
+
 function predictStress($scores) {
     $n = count($scores);
-    if ($n < 3) return array_fill(0, 7, min(100, end($scores))); // Fallback jika data < 3
+    if ($n < 3) return array_fill(0, 7, min(100, end($scores))); 
     
-    // Filter null values
+
+
     $filteredScores = array_filter($scores, function($value) {
         return $value !== null;
     });
     
     if (count($filteredScores) < 3) return array_fill(0, 7, min(100, end($filteredScores)));
-    
-    // Gunakan moving average 3 hari
+
     $predicted = [];
     for ($i = 0; $i < 7; $i++) {
         $last3 = array_slice($filteredScores, -3);
@@ -231,14 +221,14 @@ function predictStress($scores) {
 
 $predicted = predictStress($normalizedScores);
 
-// Generate tanggal prediksi
+
 $lastHistoricalDate = !empty($dates) ? end($dates) : date('d M');
 $predictedDates = [];
 for ($i = 1; $i <= 7; $i++) {
     $predictedDates[] = date('d M', strtotime("+$i days"));
 }
 
-// Gabungkan data untuk chart
+
 $chartData = [
     'dates' => array_merge($dates, $predictedDates),
     'historical' => array_merge($normalizedScores, array_fill(0, 7, null)),

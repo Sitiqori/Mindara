@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Ambil data historis 7 hari terakhir
+// Ini buat ngambil data riwayat 7 hari terakhir
 $query = "SELECT DATE(created_at) as tanggal, total FROM hasil_tes 
           WHERE user_id = '$user_id' 
           ORDER BY created_at DESC 
@@ -27,47 +27,38 @@ while ($row = mysqli_fetch_assoc($result)) {
     $scores[] = (int)$row['total'];
 }
 
-// Balik urutan agar terlama pertama
 $historicalData = array_reverse($historicalData);
 $dates = array_reverse($dates);
 $scores = array_reverse($scores);
 
-// Fungsi prediksi baru berdasarkan MA 3 hari + deret aritmatika
 function predictStress($scores) {
     $n = count($scores);
-    if ($n < 3) return array_fill(0, 7, end($scores)); // Fallback jika data < 3
+    if ($n < 3) return array_fill(0, 7, end($scores)); 
     
-    // 1. Hitung MA 3 hari untuk data yang ada
     $movingAverages = [];
     for ($i = 2; $i < $n; $i++) {
         $ma = ($scores[$i-2] + $scores[$i-1] + $scores[$i]) / 3;
         $movingAverages[] = round($ma, 2);
     }
     
-    // 2. Hitung selisih antar MA sebagai deret
     $deret = [];
     for ($i = 1; $i < count($movingAverages); $i++) {
         $deret[] = $movingAverages[$i] - $movingAverages[$i-1];
     }
     
-    // 3. Rata-rata selisih sebagai proyeksi
     $avgDeret = count($deret) > 0 ? array_sum($deret) / count($deret) : 0;
     
-    // 4. Proyeksikan 7 MA ke depan
     $predictedMA = [];
     $lastMA = end($movingAverages);
     for ($i = 0; $i < 7; $i++) {
         $nextMA = $lastMA + $avgDeret;
-        $nextMA = max(0, min(100, $nextMA)); // Clamp 0-100
+        $nextMA = max(0, min(100, $nextMA));
         $predictedMA[] = round($nextMA, 2);
         $lastMA = $nextMA;
     }
     
-    // 5. Konversi MA prediksi -> skor prediksi
-    // Asumsi: skor = MA + random variation (opsional)
     $predictedScores = [];
     foreach ($predictedMA as $ma) {
-        // Tambahkan sedikit variasi acak (±5) untuk simulasi fluktuasi alami
         $variation = rand(-5, 5);
         $score = $ma + $variation;
         $score = max(0, min(100, round($score)));
@@ -80,14 +71,12 @@ function predictStress($scores) {
 // Prediksi 7 hari ke depan
 $predictedValues = predictStress($scores);
 
-// Generate tanggal prediksi
 $lastHistoricalDate = !empty($historicalData) ? end($historicalData)['tanggal'] : date('Y-m-d');
 $predictedDates = [];
 for ($i = 1; $i <= 7; $i++) {
     $predictedDates[] = date('d M', strtotime($lastHistoricalDate . " +$i days"));
 }
 
-// Gabungkan data untuk chart
 $chartData = [
     'dates' => array_merge($dates, $predictedDates),
     'historical' => array_merge($scores, array_fill(0, 7, null)),
@@ -138,12 +127,10 @@ $chartData = [
                     Data historis kurang dari 3 hari. Tidak bisa membuat prediksi.
                 </div>
             <?php else: ?>
-                <!-- Grafik -->
                 <div class="chart-container">
                     <canvas id="stressChart"></canvas>
                 </div>
                 
-                <!-- Hasil Prediksi -->
                 <h2 style="text-align: center; color: #4a6baf;">Prediksi Hari Depan</h2>
                 <div class="prediction-grid">
                     <?php foreach ($predictedValues as $i => $value): 
@@ -162,7 +149,6 @@ $chartData = [
                     <?php endforeach; ?>
                 </div>
                 
-                <!-- Script Chart -->
                 <script>
                     const ctx = document.getElementById('stressChart').getContext('2d');
                     new Chart(ctx, {

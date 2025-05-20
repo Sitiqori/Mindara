@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'config.php'; // Koneksi ke database
+require 'config.php'; 
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Ambil nilai jawaban satu-satu
+
 $q1 = isset($_POST['q1']) ? (int)$_POST['q1'] : 0;
 $q2 = isset($_POST['q2']) ? (int)$_POST['q2'] : 0;
 $q3 = isset($_POST['q3']) ? (int)$_POST['q3'] : 0;
@@ -25,13 +25,11 @@ $total = $q1 + $q2 + $q3 + $q4 + $q5 + $q6 + $q7 + $q8 + $q9 + $q10;
 
 $created_at = date('Y-m-d');
 
-// Simpan ke database
 $query = "INSERT INTO hasil_tes (user_id, q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, total, created_at)
 VALUES ('$user_id', '$q1', '$q2', '$q3', '$q4', '$q5', '$q6', '$q7', '$q8', '$q9', '$q10', '$total', '$created_at')";
 
 mysqli_query($conn, $query);
 
-// Arahkan ke grafik
 header("Location: grafik.php");
 exit;
 ?>

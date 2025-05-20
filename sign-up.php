@@ -9,7 +9,7 @@
   </head>
   <body class="sign-up">
     <div class="auth-slide-container" id="auth-slide">
-      <!-- Form bagian kiri (Sign Up) -->
+     
       <div class="auth-form-section auth-form-left">
         <h2 class="auth-title-green">Sign Up</h2>
         <div class="auth-social-icons">
@@ -27,7 +27,7 @@
         
       </div>
 
-      <!-- Info bagian kanan (Sign In) -->
+      
       <div class="auth-info-section auth-info-right">
         <div class="auth-logo">MINDARA</div>
         <h2 class="auth-title">Welcome Back!</h2>

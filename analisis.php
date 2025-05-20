@@ -11,7 +11,7 @@ $user_id = $_SESSION['user_id'];
 $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Save answers to session
+
     if ($step === 1) {
         $_SESSION['jawaban_stres'] = $_POST['jawaban'];
     } elseif ($step === 2) {
@@ -19,29 +19,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($step === 3) {
         $_SESSION['jawaban_keuangan'] = $_POST['jawaban_keuangan'];
         
-        // Combine all answers
         $jawaban = array_merge(
             $_SESSION['jawaban_stres'],
             $_SESSION['jawaban_akademik'],
             $_SESSION['jawaban_keuangan']
         );
 
-        // Calculate total scores per category
         $stress_total = array_sum(array_slice($jawaban, 0, 10));
         $akademik_total = array_sum(array_slice($jawaban, 10, 10));
         $keuangan_total = array_sum(array_slice($jawaban, 20, 10));
         $total = $stress_total + $akademik_total + $keuangan_total;
 
-        // Calculate vector magnitude
-        $max_input = 30; // Maximum score for each question (3 * 10 questions)
-        $max_magnitude = sqrt(3 * pow($max_input, 2)); // ~173.205
+        $max_input = 30; 
+        $max_magnitude = sqrt(3 * pow($max_input, 2)); 
         $magnitude = sqrt(pow($stress_total, 2) + pow($akademik_total, 2) + pow($keuangan_total, 2));
         $normalized_score = ($magnitude / $max_magnitude) * 100;
 
-        // Round the normalized score to the nearest integer
         $normalized_score = round($normalized_score);
 
-        // Determine stress level
         if ($normalized_score <= 33) {
             $level = 'Rendah';
             $level_class = 'level-low';
@@ -56,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $recommendation = "Anda memiliki tingkat stress tinggi. Disarankan untuk konsultasi dengan profesional atau praktikkan teknik relaksasi yang intensif.";
         }
 
-        // Prepare SQL with all columns
         $query = "INSERT INTO hasil_tes (user_id, 
                   q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, 
                   q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -65,20 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
                           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-        // Prepare the statement
         $stmt = $conn->prepare($query);
         
         if ($stmt === false) {
             die("Error preparing statement: " . $conn->error);
         }
 
-        // Bind parameters
         $params = array_merge([$user_id], $jawaban, [$total, $stress_total, $akademik_total, $keuangan_total, $normalized_score]);
         
-        $types = str_repeat("i", count($params)); // Assuming all are integers
+        $types = str_repeat("i", count($params)); 
         $stmt->bind_param($types, ...$params);
 
-        // Execute the statement
         if ($stmt->execute()) {
             header("Location: grafik.php");
             exit;

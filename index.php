@@ -200,10 +200,10 @@
               if (!chartArea) return;
       
               const gradient = canvasCtx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-              // Solid color zones dari bawah (0%) ke atas (100%)
-              gradient.addColorStop(0, '#008000');  // Hijau solid
-              gradient.addColorStop(0.5, '#FFA500'); // Oranye solid
-              gradient.addColorStop(1, '#FF0000');  // Merah solid
+              
+              gradient.addColorStop(0, '#008000');  
+              gradient.addColorStop(0.5, '#FFA500'); 
+              gradient.addColorStop(1, '#FF0000');  
               return gradient;
             },
           },

@@ -29,7 +29,7 @@
   </nav>
 </header>
 
-<!-- SECTION 0: Tentang Mindara -->
+
 <section class="tentang-intro" >
   <img src="images/logo.png" alt="Mindara Logo" class="tentang-logo">
   <div class="tentang-content">
@@ -114,7 +114,7 @@
           <p>Analisis pola beban tugas & Gabungan faktor stres</p>
         </div>
 
-        <!-- ulang buat scroll terus -->
+
         <div class="tech-card card1">
           <img src="images/html.jpg" alt="HTML logo">
           <h3>HTML</h3>
@@ -151,7 +151,7 @@
 </section>
 
 
-<!-- SECTION: Tim Pengembang (grid biasa) -->
+
 <section class="tim-section">
   <h2>Tim Pengembang</h2>
   <div class="tim-grid">

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'config.php'; // Pastikan config.php ada di direktori yang sama atau sesuaikan path
+require 'config.php'; 
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// QUERY untuk Grafik Garis (7 Hari Terakhir) - DIREVISI
+// QUERY untuk Grafik 7 hari
 $sql_7days = "SELECT DATE(created_at) as date, normalized_score 
               FROM hasil_tes
               WHERE user_id = ?
@@ -20,33 +20,32 @@ mysqli_stmt_bind_param($stmt_7days, "i", $user_id);
 mysqli_stmt_execute($stmt_7days);
 $result_7days = mysqli_stmt_get_result($stmt_7days);
 
-// Inisialisasi array untuk data grafik
 $dates = [];
 $totals = [];
 $raw_data = [];
 
-// Simpan data mentah dari database
+// Menyimpan data mentah dari database
 while ($row = mysqli_fetch_assoc($result_7days)) {
     $raw_data[$row['date']] = $row['normalized_score'];
 }
 
-// Buat data untuk 7 hari terakhir
+// Untuk membuat data 7 hari terakhir 
 for ($i = 6; $i >= 0; $i--) {
     $date_ymd = date('Y-m-d', strtotime("-$i days"));
     $date_display = date('d M', strtotime("-$i days"));
     
     $dates[] = $date_display;
     
-    // Jika ada data untuk tanggal ini, gunakan nilai dari database
+    // Jika ada data pada tanggal tertentu, gunakan data pada database
     if (isset($raw_data[$date_ymd])) {
         $totals[] = (int)$raw_data[$date_ymd];
     } else {
-        // Jika tidak ada data, gunakan nilai 0 atau null
-        $totals[] = 0; // Atau bisa juga null jika ingin menampilkan grafik yang terputus
+        
+        $totals[] = 0; 
     }
 }
 
-// Ambil data historis untuk prediksi
+// Ambil data dari riwayat sebelumnya untuk membuat prediksi 
 $query = "SELECT DATE(created_at) as tanggal, total FROM hasil_tes 
           WHERE user_id = '$user_id' 
           ORDER BY created_at DESC 
@@ -80,7 +79,7 @@ function predictStress($scores) {
 
 $predicted = predictStress($scores);
 
-// QUERY untuk Grafik 3D (Hari Ini Saja)
+// QUERY untuk Grafik 3D 
 $sql_today = "SELECT stress_total, akademik_total, keuangan_total, normalized_score, created_at
               FROM hasil_tes
               WHERE user_id = ?
@@ -94,10 +93,10 @@ $result_today = mysqli_stmt_get_result($stmt_today);
 $today_data = mysqli_fetch_assoc($result_today);
 mysqli_stmt_close($stmt_today);
 
-// Siapkan data untuk grafik 3D
+// Menyiapkan data untuk grafik 3D
 $vector_data = null;
 if ($today_data) {
-    // Gunakan nilai mentah (0-30) tanpa normalisasi ke 0-10
+    // Menggunakan nilai 0 - 30
     $stress_norm = $today_data['stress_total'];
     $akademik_norm = $today_data['akademik_total'];
     $keuangan_norm = $today_data['keuangan_total'];
@@ -165,7 +164,7 @@ if ($today_data) {
         .vector-component { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
         .vector-component:last-child { border-bottom: none; }
         .vector-component span:first-child { font-weight: bold; color: #555; }
-        /* Styles for Recommendation Box */
+        
         header {
             position: fixed;
             width: 100%;
@@ -214,14 +213,14 @@ if ($today_data) {
             }
 
             .login-link {
-            border: 2px solid #669BBC; /* Change this color as needed */
-            padding: 5px 10px; /* Optional: Adds some spacing */
-            border-radius: 5px; /* Optional: Rounds the corners */
-            transition: border-color 0.3s; /* Smooth transition on hover */
+            border: 2px solid #669BBC; 
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: border-color 0.3s; 
             }
 
             .login-link:hover {
-            border-color: #002B45; /* Change border color on hover */
+            border-color: #002B45; 
             }
         .rekomendasi-box {
             margin-top: 30px;
@@ -369,29 +368,7 @@ if ($today_data) {
                 </ul>
             </div>
 
-            <div class="vector-info">
-                <h3>Detail Vektor Stres Harian</h3>
-                <div class="vector-day-card">
-                    <h4>Tanggal: <?= htmlspecialchars($vector_data['date']) ?></h4>
-                    <p><strong>Skor Stres Keseluruhan (0-100):</strong> <?= round($vector_data['total']) ?></p>
-                    <p><strong>Besaran Vektor (Magnitude):</strong> <?= number_format($vector_data['magnitude'], 2) ?></p>
-                    <p><strong>Komponen Vektor (Skala 0-30):</strong></p>
-                    <div class="vector-components">
-                        <div class="vector-component">
-                            <span>X (Stres Keuangan):</span>
-                            <span><?= number_format($vector_data['x'], 2) ?></span>
-                        </div>
-                        <div class="vector-component">
-                            <span>Y (Stres Umum):</span>
-                            <span><?= number_format($vector_data['z'], 2) ?></span>
-                        </div>
-                        <div class="vector-component">
-                            <span>Z (Tekanan Akademik):</span>
-                            <span><?= number_format($vector_data['y'], 2) ?></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
             <?php else: ?>
             <p class="no-data-message">Belum ada data tes untuk hari ini. Silakan <a href="analisis.php">lakukan tes</a> terlebih dahulu untuk melihat visualisasi 3D dan rekomendasi.</p>
             <?php endif; ?>
@@ -402,12 +379,12 @@ if ($today_data) {
     document.addEventListener('DOMContentLoaded', function() {
     const trendCtx = document.getElementById('trendChart');
     if (trendCtx) {
-        // Assuming dates and totals are defined in PHP
+
         const labels = <?php echo json_encode($dates); ?>;
         const dataAsli = <?php echo json_encode($totals); ?>;
         const dataPrediksi = <?php echo json_encode($predicted); ?>;
         
-        // Create future dates for prediction (7 days)
+        // Membuat data untuk prediksi 7 hari 
         const futureDates = [];
         for (let i = 1; i <= 7; i++) {
             const today = new Date();
@@ -415,7 +392,6 @@ if ($today_data) {
             futureDates.push(today.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }));
         }
         
-        // Combine all dates
         const allDates = [...labels, ...futureDates];
         
         new Chart(trendCtx, {
@@ -505,7 +481,7 @@ if ($today_data) {
             scene.background = new THREE.Color(0xf0f2f5);
             
             const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(15, 15, 25); // Posisi kamera disesuaikan
+            camera.position.set(15, 15, 25); 
             
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
@@ -523,28 +499,24 @@ if ($today_data) {
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
             
-            // === PENYESUAIAN UKURAN SUMBU ===
-            const scaleFactor = 0.5; // Faktor skala untuk mengecilkan tampilan visual
-            const axisLength = 30 * scaleFactor; // Panjang sumbu visual (nilai sebenarnya tetap 30)
-            const axisRadius = 0.08; // Ketebalan sumbu
-            const headRadius = 0.3;  // Ukuran kepala panah
-            const headHeight = 0.8;  // Tinggi kepala panah
+            // Sumbu 
+            const scaleFactor = 0.5; 
+            const axisLength = 30 * scaleFactor; 
+            const axisRadius = 0.08; 
+            const headRadius = 0.3;  
+            const headHeight = 0.8;  
             
-            // Fungsi pembuat sumbu
             function createAxis(axisParams) {
                 const { direction, color, name } = axisParams;
                 const group = new THREE.Group();
 
-                // Batang sumbu
                 const cylinderGeom = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, 12);
                 const cylinderMat = new THREE.MeshBasicMaterial({ color: color });
                 const cylinder = new THREE.Mesh(cylinderGeom, cylinderMat);
                 
-                // Kepala panah
                 const coneGeom = new THREE.ConeGeometry(headRadius, headHeight, 12);
                 const cone = new THREE.Mesh(coneGeom, cylinderMat);
 
-                // Penyesuaian orientasi berdasarkan sumbu
                 if (name === 'x') {
                     cylinder.rotation.z = -Math.PI / 2;
                     cylinder.position.x = axisLength / 2;
@@ -565,20 +537,17 @@ if ($today_data) {
                 scene.add(group);
             }
 
-            // Membuat ketiga sumbu
             createAxis({ direction: new THREE.Vector3(1, 0, 0), color: 0x3498db, name: 'x' });
             createAxis({ direction: new THREE.Vector3(0, 1, 0), color: 0xe74c3c, name: 'y' });
             createAxis({ direction: new THREE.Vector3(0, 0, 1), color: 0x2ecc71, name: 'z' });
             
-            // Grid helper dengan ukuran yang proporsional
             const gridSize = 60 * scaleFactor;
             const gridDivisions = 10;
             const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0xcccccc, 0xcccccc);
             scene.add(gridHelper);
             
-            // Data vektor dengan skala yang sama
             const vector = <?php echo json_encode($vector_data); ?>;
-            const vectorScale = 0.5 * scaleFactor; // Skala vektor disesuaikan
+            const vectorScale = 0.5 * scaleFactor; 
             
             let arrowDirection, arrowLength;
             if (vector.magnitude === 0) {
@@ -589,7 +558,6 @@ if ($today_data) {
                 arrowLength = vector.magnitude * vectorScale;
             }
 
-            // Membuat panah vektor
             const arrowHelper = new THREE.ArrowHelper(
                 arrowDirection,
                 new THREE.Vector3(0, 0, 0),
@@ -600,7 +568,6 @@ if ($today_data) {
             );
             scene.add(arrowHelper);
 
-            // Membuat label sumbu
             function createAxisLabel(text, position, colorHex) {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
@@ -624,13 +591,11 @@ if ($today_data) {
                 return sprite;
             }
             
-            // Menambahkan label sumbu
             const labelOffset = 2;
             scene.add(createAxisLabel('Y: Stres', new THREE.Vector3(axisLength + labelOffset, 0, 0), 0x3498db));
             scene.add(createAxisLabel('Z: Akademik', new THREE.Vector3(0, axisLength + labelOffset, 0), 0xe74c3c));
             scene.add(createAxisLabel('X: Keuangan', new THREE.Vector3(0, 0, axisLength + labelOffset), 0x2ecc71));
 
-            // Membuat label informasi vektor
             const labelCanvas = document.createElement('canvas');
             labelCanvas.width = 220; 
             labelCanvas.height = 110;
@@ -662,7 +627,6 @@ if ($today_data) {
             labelSprite.scale.set(4, 2, 1);
             scene.add(labelSprite);
             
-            // Kontrol rotasi otomatis
             let autoRotate = false;
             const rotateButton = document.getElementById('rotateToggle');
             if (rotateButton) {
@@ -672,7 +636,6 @@ if ($today_data) {
                 });
             }
             
-            // Tombol reset view
             const resetButton = document.getElementById('resetView');
             if (resetButton) {
                 resetButton.addEventListener('click', () => {
@@ -682,8 +645,7 @@ if ($today_data) {
                     if (rotateButton) rotateButton.textContent = 'Aktifkan Rotasi Otomatis';
                 });
             }
-            
-            // Animasi
+
             function animate() {
                 requestAnimationFrame(animate);
                 if (autoRotate && arrowLength > 0) {
@@ -694,7 +656,6 @@ if ($today_data) {
             }
             animate();
             
-            // Handle resize
             window.addEventListener('resize', () => {
                 camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();

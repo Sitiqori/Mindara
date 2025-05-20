@@ -5,10 +5,10 @@ include('config.php');
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $user_id = $_SESSION['user_id'];
 
-    // Simpan input awal ke session agar tidak hilang
+    
     $_SESSION['form_data'] = $_POST;
 
-    // Ambil data input
+   
     $fullname = $_POST['fullname'];
     $email = $_POST['email'];
     $phone = $_POST['phone'];
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $preferences = $_POST['preferences'];
     $stress_level = isset($_POST['stress_level']) ? intval($_POST['stress_level']) : null;
 
-    // Upload foto
+  
     $profile_pic_path = null;
     if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] == 0) {
         $upload_dir = 'uploads/';
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Update data profil
+
     $stmt = $conn->prepare("UPDATE user_profile SET fullname=?, email=?, phone=?, birthdate=?, gender=?, bio=?, preferences=?, profile_pic=? WHERE user_id=?");
     $stmt->bind_param("ssssssssi", $fullname, $email, $phone, $birthdate, $gender, $bio, $preferences, $profile_pic_path, $user_id);
     
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // Update stres terakhir
+    
     if ($stress_level !== null) {
         $check_stmt = $conn->prepare("SELECT id FROM hasil_tes WHERE user_id = ? ORDER BY created_at DESC LIMIT 1");
         $check_stmt->bind_param("i", $user_id);
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Kosongkan session form data setelah berhasil
+   
     unset($_SESSION['form_data']);
 
     header("Location: profile.php");
