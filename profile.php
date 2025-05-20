@@ -98,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         
         // Prepare an UPDATE statement
-$sql = "UPDATE users SET nama = ?, email = ?, phone = ?, birthdate = ?, gender = ?, bio = ?, notification_preferences = ?";
+        $sql = "UPDATE users SET nama = ?, email = ?, phone = ?, birthdate = ?, gender = ?, bio = ?, notification_preferences = ?";
         $params = array($fullname, $email, $phone, $birthdate, $gender, $bio, $preferences);
         
         // Add profile_pic to update if one was uploaded
@@ -163,38 +163,87 @@ if ($user_id && $_SERVER["REQUEST_METHOD"] != "POST") {
     $stmt_stress->close();
 }
 
-// QUERY untuk grafik garis 7 hari terakhir
+// QUERY untuk grafik garis 7 hari terakhir - DIREVISI untuk prediksi
 $dates = [];
 $totals = [];
+$normalizedScores = []; // Untuk menyimpan skor normalisasi
 
 if ($user_id) {
-    $sql_7days = "SELECT DATE(created_at) as date, SUM(total) as total
+    $sql_7days = "SELECT DATE(created_at) as date, total, normalized_score 
                   FROM hasil_tes
                   WHERE user_id = ?
                   AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
-                  GROUP BY DATE(created_at)
                   ORDER BY date ASC";
     $stmt_7days = mysqli_prepare($conn, $sql_7days);
     mysqli_stmt_bind_param($stmt_7days, "i", $user_id);
     mysqli_stmt_execute($stmt_7days);
     $result_7days = mysqli_stmt_get_result($stmt_7days);
 
-    // Inisialisasi dengan data default untuk 7 hari terakhir
-    for ($i = 6; $i >= 0; $i--) {
-        $date = date('d M', strtotime("-$i days"));
-        $dates[] = $date;
-        $totals[] = 0; // Nilai default
+    // Simpan data mentah dari database
+    $raw_data = [];
+    while ($row = mysqli_fetch_assoc($result_7days)) {
+        $raw_data[$row['date']] = $row;
     }
 
-    // Isi dengan data dari database
-    while ($row = mysqli_fetch_assoc($result_7days)) {
-        $date_index = array_search(date('d M', strtotime($row['date'])), $dates);
-        if ($date_index !== false) {
-            $totals[$date_index] = $row['total'];
+    // Buat data untuk 7 hari terakhir
+    for ($i = 6; $i >= 0; $i--) {
+        $date_ymd = date('Y-m-d', strtotime("-$i days"));
+        $date_display = date('d M', strtotime("-$i days"));
+        
+        $dates[] = $date_display;
+        
+        // Jika ada data untuk tanggal ini, gunakan nilai dari database
+        if (isset($raw_data[$date_ymd])) {
+            $totals[] = (int)$raw_data[$date_ymd]['total'];
+            $normalizedScores[] = (int)$raw_data[$date_ymd]['normalized_score'];
+        } else {
+            // Jika tidak ada data, gunakan nilai null
+            $totals[] = null;
+            $normalizedScores[] = null;
         }
     }
     mysqli_stmt_close($stmt_7days);
 }
+
+// Fungsi prediksi
+function predictStress($scores) {
+    $n = count($scores);
+    if ($n < 3) return array_fill(0, 7, min(100, end($scores))); // Fallback jika data < 3
+    
+    // Filter null values
+    $filteredScores = array_filter($scores, function($value) {
+        return $value !== null;
+    });
+    
+    if (count($filteredScores) < 3) return array_fill(0, 7, min(100, end($filteredScores)));
+    
+    // Gunakan moving average 3 hari
+    $predicted = [];
+    for ($i = 0; $i < 7; $i++) {
+        $last3 = array_slice($filteredScores, -3);
+        $avg = array_sum($last3) / 3;
+        $next = min(100, round($avg));
+        $predicted[] = $next;
+        $filteredScores[] = $next;
+    }
+    return $predicted;
+}
+
+$predicted = predictStress($normalizedScores);
+
+// Generate tanggal prediksi
+$lastHistoricalDate = !empty($dates) ? end($dates) : date('d M');
+$predictedDates = [];
+for ($i = 1; $i <= 7; $i++) {
+    $predictedDates[] = date('d M', strtotime("+$i days"));
+}
+
+// Gabungkan data untuk chart
+$chartData = [
+    'dates' => array_merge($dates, $predictedDates),
+    'historical' => array_merge($normalizedScores, array_fill(0, 7, null)),
+    'predicted' => array_merge(array_fill(0, count($normalizedScores), null), $predicted)
+];
 
 $conn->close();
 ?>
@@ -213,25 +262,26 @@ $conn->close();
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: #f5f7fa;
             color: #333;
         }
         
         .container {
-            max-width: 800px;
-            margin: 100px auto; /* Menambah jarak atas agar tidak tertutup header */
+            max-width: 1000px;
+            margin: 100px auto;
             padding: 20px;
         }
         
         .profile-form {
             background-color: white;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         
         h1 {
-            color: #002B45;
+            color: #4a6baf;
             margin-bottom: 30px;
             text-align: center;
         }
@@ -244,7 +294,7 @@ $conn->close();
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #002B45;
+            color: #4a6baf;
         }
         
         input, select, textarea {
@@ -262,7 +312,7 @@ $conn->close();
         }
         
         button, .upload-btn {
-            background-color: #002B45;
+            background-color: #4a6baf;
             color: white;
             border: none;
             padding: 14px 28px;
@@ -273,7 +323,7 @@ $conn->close();
         }
         
         button:hover, .upload-btn:hover {
-            background-color: #002B45;
+            background-color: #3a5a9f;
         }
         
         .button-group {
@@ -347,7 +397,7 @@ $conn->close();
         
         .progress-bar {
             height: 100%;
-            background-color : #002B45;
+            background-color: #4a6baf;
             border-radius: 5px;
         }
         
@@ -381,16 +431,16 @@ $conn->close();
             margin-bottom: 20px;
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Membuat slider dan persentase berjauhan */
+            justify-content: space-between;
         }
 
         #stress_percentage {
             font-weight: bold;
-            color: #002B45;
+            color: #4a6baf;
             margin-left: 10px;
         }
 
-        /* Tambahan untuk chart */
+        /* Chart Section */
         .chart-section {
             margin-top: 40px;
             margin-bottom: 30px;
@@ -400,18 +450,15 @@ $conn->close();
         
         .chart-container {
             width: 100%;
-            height: 300px;
-            margin-bottom: 20px;
+            height: 400px;
+            margin: 30px 0;
             background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: relative;
-            overflow: visible;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .chart-title {
-            color: #002B45;
+            color: #4a6baf;
             font-size: 18px;
             margin-bottom: 15px;
             text-align: center;
@@ -425,6 +472,37 @@ $conn->close();
             background-color: #f0f0f8;
             border-radius: 8px;
         }
+
+        /* Prediction Section */
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .prediction-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-date {
+            font-weight: 600;
+            color: #4a6baf;
+        }
+        
+        .prediction-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .low { color: #00b894; }
+        .medium { color: #fdcb6e; }
+        .high { color: #e17055; }
 
     </style>
     
@@ -535,12 +613,33 @@ $conn->close();
                 </div>
             </form>
             
-            <!-- Chart Section yang dipindahkan ke bagian bawah profil -->
+            <!-- Chart Section -->
             <div class="chart-section">
-                <h3 class="chart-title">Perkembangan Tingkat Stres (7 Hari Terakhir)</h3>
-                <?php if ($user_id && !empty($totals) && array_sum($totals) > 0): ?>
+                <h3 class="chart-title">Perkembangan & Prediksi Tingkat Stres</h3>
+                <?php if ($user_id && count(array_filter($normalizedScores)) > 0): ?>
                 <div class="chart-container">
                     <canvas id="trendChart"></canvas>
+                </div>
+                
+                <!-- Prediction Grid -->
+                <div style="margin-top: 30px;">
+                    <h4 style="text-align: center; color: #4a6baf;">Prediksi 7 Hari Mendatang</h4>
+                    <div class="prediction-grid">
+                        <?php foreach ($predicted as $i => $value): 
+                            $levelClass = '';
+                            if ($value <= 33) $levelClass = 'low';
+                            elseif ($value <= 66) $levelClass = 'medium';
+                            else $levelClass = 'high';
+                        ?>
+                            <div class="prediction-card">
+                                <div class="prediction-date"><?= $predictedDates[$i] ?></div>
+                                <div class="prediction-value <?= $levelClass ?>"><?= $value ?></div>
+                                <div>
+                                    <?= $levelClass === 'low' ? 'Rendah' : ($levelClass === 'medium' ? 'Sedang' : 'Tinggi') ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
                 <?php else: ?>
                 <p class="no-data-message">Data tidak cukup untuk menampilkan grafik stres. Silakan <a href="analisis.php">lakukan tes</a> terlebih dahulu.</p>
@@ -569,20 +668,33 @@ $conn->close();
                 new Chart(trendCtx, {
                     type: 'line',
                     data: {
-                        labels: <?php echo json_encode($dates); ?>,
-                        datasets: [{
-                            label: 'Skor Stres',
-                            data: <?php echo json_encode($totals); ?>,
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',  // Lebih transparan
-                            borderColor: '#3498db',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true,
-                            pointBackgroundColor: '#3498db',
-                            pointBorderColor: '#fff',
-                            pointHoverRadius: 7,
-                            pointHoverBackgroundColor: '#2980b9'
-                        }]
+                        labels: <?php echo json_encode($chartData['dates']); ?>,
+                        datasets: [
+                            {
+                                label: 'Data Historis',
+                                data: <?php echo json_encode($chartData['historical']); ?>,
+                                borderColor: '#4a6baf',
+                                backgroundColor: 'rgba(74, 107, 175, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#4a6baf',
+                                pointBorderColor: '#fff',
+                                pointHoverRadius: 7
+                            },
+                            {
+                                label: 'Prediksi',
+                                data: <?php echo json_encode($chartData['predicted']); ?>,
+                                borderColor: '#e17055',
+                                borderDash: [5, 5],
+                                backgroundColor: 'rgba(225, 112, 85, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                pointBackgroundColor: '#e17055',
+                                pointBorderColor: '#fff',
+                                pointHoverRadius: 5
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
@@ -590,22 +702,34 @@ $conn->close();
                         scales: {
                             y: { 
                                 beginAtZero: true,
-                                max: 150,
-                                title: { display: true, text: 'Skor Stres (0-100)', font: {size: 12} },
+                                max: 100,
+                                title: { 
+                                    display: true, 
+                                    text: 'Skor Stres (0-100)', 
+                                    font: {size: 12} 
+                                },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'  // Grid lines lebih transparan
+                                    color: 'rgba(0, 0, 0, 0.05)'
                                 }
                             },
                             x: {
-                                title: { display: true, text: 'Tanggal', font: {size: 12} },
+                                title: { 
+                                    display: true, 
+                                    text: 'Tanggal', 
+                                    font: {size: 12} 
+                                },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'  // Grid lines lebih transparan
+                                    color: 'rgba(0, 0, 0, 0.05)'
                                 }
                             }
                         },
                         plugins: {
                             legend: {
-                                display: false
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
                             }
                         }
                     }
